@@ -1,7 +1,19 @@
 
-export type ViewState = 'repository' | 'templates' | 'settings';
+export type ViewState = 'repository' | 'templates' | 'settings' | 'members';
 
 export type ValidityStatus = 'long_term' | 'valid' | 'expiring' | 'expired';
+
+export type UserRole = 'super_admin' | 'dept_admin' | 'dept_collaborator' | 'viewer';
+
+export interface User {
+  id: string;
+  name: string;
+  avatar: string;
+  role: UserRole;
+  deptId?: string; // Specific repository ID they belong to (for non-super admins)
+  email?: string;
+  lastLogin?: string;
+}
 
 export interface FileItem {
   id: string;
@@ -12,6 +24,7 @@ export interface FileItem {
   tags: string[];
   summary: string;
   status: ValidityStatus;
+  repoId: string;
   isDeleted?: boolean;
   folderId?: string | null;
 }
