@@ -21,12 +21,14 @@ export interface FileItem {
   type: string;
   size: string;
   date: string;
+  expirationDate?: string;
   tags: string[];
   summary: string;
   status: ValidityStatus;
   repoId: string;
   isDeleted?: boolean;
   folderId?: string | null;
+  uploader: string;
 }
 
 export interface Folder {

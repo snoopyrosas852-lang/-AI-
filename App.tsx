@@ -57,7 +57,8 @@ import {
   RotateCcw,
   Copy,
   ExternalLink,
-  FileArchive
+  FileArchive,
+  User as UserIcon
 } from 'lucide-react';
 import { ViewState, FileItem, Folder, Repository, ValidityStatus, AITemplate, UserRole, User } from './types';
 
@@ -118,19 +119,19 @@ const INITIAL_FOLDERS: Folder[] = [
 ];
 
 const INITIAL_FILES: FileItem[] = [
-  { id: '1', name: '2024Q1研发进度周报.docx', type: 'DOCX', size: '2.4 MB', date: '2024-03-20', tags: ['#研发', '#周报'], summary: '本周研发团队完成了后端 API 的重构。重点优化了鉴权机制和响应缓存。项目 NexusAI 的语义向量索引优化算法已进入内测阶段，预计 Q2 之前完成全面部署。目前存在的主要风险是数据库连接池在高并发下的稳定性问题。', status: 'valid', repoId: 'repo_rd', folderId: 'f1' },
-  { id: '2', name: '产品设计规范 V2.0.pdf', type: 'PDF', size: '15.1 MB', date: '2024-03-18', tags: ['#产品', '#设计规范'], summary: '定义了全系统的主色调、字体比例及交互动效准则。包含组件库的使用说明和设计原则。', status: 'long_term', repoId: 'repo_rd', folderId: 'f2' },
-  { id: '3', name: '[中标] 智慧城市投标方案_v1.pdf', type: 'PDF', size: '4.2 MB', date: '2024-03-15', tags: ['#业绩', '#投标'], summary: '针对某市智慧园区建设的完整投标方案及报价。包含了硬件采购、软件定制及未来三年的运维支持计划。', status: 'long_term', repoId: 'repo_bid', folderId: 'f3' },
-  { id: '4', name: '核心算法专利申报.docx', type: 'DOCX', size: '1.1 MB', date: '2024-03-10', tags: ['#法务', '#研发'], summary: '描述了 NexusAI 的语义向量索引优化算法及其在大规模分布式环境下的性能表现。', status: 'long_term', repoId: 'repo_rd', folderId: null },
-  { id: '5', name: '员工入职手册 2024版.pdf', type: 'PDF', size: '5.8 MB', date: '2024-01-05', tags: ['#行政', '#入职'], summary: '针对新入职员工的企业文化培训、日常办公系统操作指南及福利政策说明。', status: 'long_term', repoId: 'repo_hr', folderId: null },
-  { id: '6', name: 'NexusAI API 安全审计报告.pdf', type: 'PDF', size: '2.3 MB', date: '2024-03-22', tags: ['#安全', '#审计'], summary: '针对 NexusAI 外部接口的渗透测试报告，修复了两个高危 SQL 注入漏洞和一个逻辑越权问题。', status: 'valid', repoId: 'repo_rd', folderId: 'f1' },
-  { id: '7', name: '2024 政府采购投标资质全集.zip', type: 'ZIP', size: '128.4 MB', date: '2024-03-23', tags: ['#资质', '#投标'], summary: '包含最新的三证合一、社保证明、纳税证明等投标必备扫描件集合。', status: 'expiring', repoId: 'repo_bid', folderId: 'f4' },
-  { id: '8', name: '软件服务采购协议 (模板).docx', type: 'DOCX', size: '0.8 MB', date: '2024-02-14', tags: ['#合同', '#法务'], summary: '标准的 IT 软件采购合同范本，包含 SLA 保障条款和数据隐私保护协议。', status: 'long_term', repoId: 'repo_legal', folderId: null },
-  { id: '9', name: '2024 年度晋升评定标准 V1.xlsx', type: 'XLSX', size: '1.2 MB', date: '2024-03-01', tags: ['#HR', '#考核'], summary: '详细罗列了研发、产品、职能序列的职级评定维度及对应的薪资带宽。', status: 'valid', repoId: 'repo_hr', folderId: null },
-  { id: '10', name: '竞争对手产品对标分析 2024Q1.pptx', type: 'PPTX', size: '22.4 MB', date: '2024-03-12', tags: ['#市场', '#竞对'], summary: '对业内前三家主流 AI 知识库产品的核心功能、价格体系及市场占有率进行的深度调研报告。', status: 'valid', repoId: 'repo_bid', folderId: null },
-  { id: '11', name: '数据处理安全合规指引.pdf', type: 'PDF', size: '3.1 MB', date: '2023-11-20', tags: ['#合规', '#法务'], summary: '根据《个人信息保护法》制定的企业内部数据处理操作手册。', status: 'long_term', repoId: 'repo_legal', folderId: null },
-  { id: '12', name: '分布式向量数据库压测数据记录.csv', type: 'CSV', size: '45.1 MB', date: '2024-03-24', tags: ['#研发', '#性能'], summary: 'Milvus 在亿级数据量下的检索延迟与 QPS 原始测试数据记录。', status: 'valid', repoId: 'repo_rd', folderId: null },
-  { id: '13', name: '企业营业执照副本扫描件.jpg', type: 'JPG', size: '2.1 MB', date: '2024-03-24', tags: ['#资质', '#证照'], summary: '公司营业执照副本扫描件，包含最新年检信息与官方印章确认。', status: 'long_term', repoId: 'repo_bid', folderId: 'f4' },
+  { id: '1', name: '2024Q1研发进度周报.docx', uploader: '张小钉', type: 'DOCX', size: '2.4 MB', date: '2024-03-20', expirationDate: '2024-04-20', tags: ['#研发', '#周报'], summary: '本周研发团队完成了后端 API 的重构。重点优化了鉴权机制和响应缓存。项目 NexusAI 的语义向量索引优化算法已进入内测阶段，预计 Q2 之前完成全面部署。目前存在的主要风险是数据库连接池在高并发下的稳定性问题。', status: 'valid', repoId: 'repo_rd', folderId: 'f1' },
+  { id: '2', name: '产品设计规范 V2.0.pdf', uploader: '李研发', type: 'PDF', size: '15.1 MB', date: '2024-03-18', tags: ['#产品', '#设计规范'], summary: '定义了全系统的主色调、字体比例及交互动效准则。包含组件库的使用说明和设计原则。', status: 'long_term', repoId: 'repo_rd', folderId: 'f2' },
+  { id: '3', name: '[中标]智慧城市投标方案_v1.pdf', uploader: '孙投标', type: 'PDF', size: '4.2 MB', date: '2024-03-15', tags: ['#业绩', '#投标'], summary: '针对某市智慧园区建设的完整投标方案及报价。包含了硬件采购、软件定制及未来三年的运维支持计划。', status: 'long_term', repoId: 'repo_bid', folderId: 'f3' },
+  { id: '4', name: '核心算法专利申报.docx', uploader: '张小钉', type: 'DOCX', size: '1.1 MB', date: '2024-03-10', tags: ['#法务', '#研发'], summary: '描述了 NexusAI 的语义向量索引优化算法及其在大规模分布式环境下的性能表现。', status: 'long_term', repoId: 'repo_rd', folderId: null },
+  { id: '5', name: '员工入职手册 2024版.pdf', uploader: '王技术', type: 'PDF', size: '5.8 MB', date: '2024-01-05', tags: ['#行政', '#入职'], summary: '针对新入职员工的企业文化培训、日常办公系统操作指南及福利政策说明。', status: 'long_term', repoId: 'repo_hr', folderId: null },
+  { id: '6', name: 'NexusAI API 安全审计报告.pdf', uploader: '张小钉', type: 'PDF', size: '2.3 MB', date: '2024-03-22', expirationDate: '2024-06-22', tags: ['#安全', '#审计'], summary: '针对 NexusAI 外部接口的渗透测试报告，修复了两个高危 SQL 注入漏洞和一个逻辑越权问题。', status: 'valid', repoId: 'repo_rd', folderId: 'f1' },
+  { id: '7', name: '2024 政府采购投标资质全集.zip', uploader: '孙投标', type: 'ZIP', size: '128.4 MB', date: '2024-03-23', expirationDate: '2024-03-30', tags: ['#资质', '#投标'], summary: '包含最新的三证合一、社保证明、纳税证明等投标必备扫描件集合。', status: 'expiring', repoId: 'repo_bid', folderId: 'f4' },
+  { id: '8', name: '软件服务采购协议 (模板).docx', uploader: '赵审计', type: 'DOCX', size: '0.8 MB', date: '2024-02-14', tags: ['#合同', '#法务'], summary: '标准的 IT 软件采购合同范本，包含 SLA 保障条款和数据隐私保护协议。', status: 'long_term', repoId: 'repo_legal', folderId: null },
+  { id: '9', name: '2024 年度晋升评定标准 V1.xlsx', uploader: '王技术', type: 'XLSX', size: '1.2 MB', date: '2024-03-01', expirationDate: '2025-03-01', tags: ['#HR', '#考核'], summary: '详细罗列了研发、产品、职能序列的职级评定维度及对应的薪资带宽。', status: 'valid', repoId: 'repo_hr', folderId: null },
+  { id: '10', name: '竞争对手产品对标 analysis 2024Q1.pptx', uploader: '孙投标', type: 'PPTX', size: '22.4 MB', date: '2024-03-12', expirationDate: '2024-04-12', tags: ['#市场', '#竞对'], summary: '对业内前三家主流 AI 知识库产品的核心功能、价格体系及市场占有率进行的深度调研报告。', status: 'valid', repoId: 'repo_bid', folderId: null },
+  { id: '11', name: '数据处理安全合规指引.pdf', uploader: '赵审计', type: 'PDF', size: '3.1 MB', date: '2023-11-20', tags: ['#合规', '#法务'], summary: '根据《个人信息保护法》制定的企业内部数据处理操作手册。', status: 'long_term', repoId: 'repo_legal', folderId: null },
+  { id: '12', name: '分布式向量数据库压测数据记录.csv', uploader: '李研发', type: 'CSV', size: '45.1 MB', date: '2024-03-24', expirationDate: '2024-09-24', tags: ['#研发', '#性能'], summary: 'Milvus 在亿级数据量下的检索延迟与 QPS 原始测试数据记录。', status: 'valid', repoId: 'repo_rd', folderId: null },
+  { id: '13', name: '企业营业执照副本扫描件.jpg', uploader: '孙投标', type: 'JPG', size: '2.1 MB', date: '2024-03-24', tags: ['#资质', '#证照'], summary: '公司营业执照副本扫描件，包含最新年检信息与官方印章确认。', status: 'long_term', repoId: 'repo_bid', folderId: 'f4' },
 ];
 
 export default function App() {
@@ -154,7 +155,6 @@ export default function App() {
   const [selectedTemplate, setSelectedTemplate] = useState<AITemplate | null>(null);
   const [previewFile, setPreviewFile] = useState<FileItem | null>(null);
   const [editingFile, setEditingFile] = useState<FileItem | null>(null);
-  const [ingestionTab, setIngestionTab] = useState<'manual' | 'smart'>('smart');
   const [newFolderName, setNewFolderName] = useState('');
   const [newBatchTagName, setNewBatchTagName] = useState('');
   const [tagInput, setTagInput] = useState('');
@@ -187,6 +187,10 @@ export default function App() {
     setIsProcessing(true);
     setTimeout(() => {
       setIsProcessing(false);
+      setFiles(prev => [
+        ...prev,
+        { id: `new_${Date.now()}`, name: '批量入库文件示例.pdf', uploader: currentUser.name, type: 'PDF', size: '4.5 MB', date: new Date().toISOString().split('T')[0], expirationDate: '2025-10-24', tags: ['#自动分类'], summary: '这是一个通过批量入库功能自动处理的示例文档。', status: 'valid', repoId: activeRepoId, folderId: currentFolderId }
+      ]);
       setModalMode(null);
     }, 1500);
   };
@@ -490,7 +494,7 @@ export default function App() {
                         <FolderPlus size={14} /> 新建文件夹
                       </button>
                       <button 
-                        onClick={() => { setModalMode('ingestion'); setIngestionTab('smart'); }}
+                        onClick={() => setModalMode('ingestion')}
                         className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-black rounded-lg border border-blue-100 text-[#007FFF] bg-blue-50/50 hover:bg-blue-50 transition-all shadow-sm`}
                       >
                         <UploadCloud size={14} /> 智能入库
@@ -587,10 +591,12 @@ export default function App() {
                                     </button>
                                 </th>
                                 <th className="px-2 py-4 font-bold">名称</th>
+                                <th className="px-4 py-4 font-bold">上传人</th>
                                 <th className="px-4 py-4 font-bold">类型</th>
                                 <th className="px-4 py-4 font-bold">标签</th>
                                 <th className="px-4 py-4 font-bold">状态</th>
-                                <th className="px-4 py-4 font-bold">最后更新</th>
+                                <th className="px-4 py-4 font-bold">上传时间</th>
+                                <th className="px-4 py-4 font-bold">失效时间</th>
                                 <th className="px-8 py-4 font-bold text-right">操作</th>
                                 </tr>
                             </thead>
@@ -606,10 +612,12 @@ export default function App() {
                                                 <span className="text-sm font-bold text-slate-700">{folder.name}</span>
                                             </div>
                                         </td>
+                                        <td className="px-4 py-4 text-xs font-medium text-slate-400">—</td>
                                         <td className="px-4 py-4 text-xs font-medium text-slate-400">文件夹</td>
                                         <td className="px-4 py-4">—</td>
                                         <td className="px-4 py-4">—</td>
                                         <td className="px-4 py-4 text-xs text-slate-300 font-medium">2024-03-21</td>
+                                        <td className="px-4 py-4 text-xs text-slate-300 font-medium">—</td>
                                         <td className="px-8 py-4 text-right">
                                             {canOperateFiles && (
                                                 <button className="p-1.5 text-slate-200 hover:text-slate-500 rounded-lg transition-all opacity-0 group-hover:opacity-100">
@@ -633,6 +641,12 @@ export default function App() {
                                             </div>
                                         </td>
                                         <td className="px-4 py-4">
+                                            <div className="flex items-center gap-2 text-xs font-bold text-slate-500 bg-slate-50 px-2 py-1 rounded-lg border border-slate-100 w-fit">
+                                                <UserIcon size={12} className="text-slate-400" />
+                                                {file.uploader}
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-4">
                                             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">{file.type}</span>
                                         </td>
                                         <td className="px-4 py-4">
@@ -646,6 +660,9 @@ export default function App() {
                                             </div>
                                         </td>
                                         <td className="px-4 py-4 text-xs text-slate-300 font-medium">{file.date}</td>
+                                        <td className="px-4 py-4 text-xs text-slate-400 font-bold">
+                                            {file.status === 'long_term' ? '—' : (file.expirationDate || '未设定')}
+                                        </td>
                                         <td className="px-8 py-4 text-right">
                                             <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                                 {isTrashView ? (
@@ -743,6 +760,10 @@ export default function App() {
                                 </div>
                             </div>
                             <div className="flex justify-between items-center text-xs">
+                                <span className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">上传人</span>
+                                <span className="text-slate-600 font-bold">{lastSelectedFile.uploader}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-xs">
                                 <span className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">文件大小</span>
                                 <span className="text-slate-600 font-bold">{lastSelectedFile.size}</span>
                             </div>
@@ -751,8 +772,14 @@ export default function App() {
                                 <span className="text-slate-600 font-bold">{MOCK_REPOS.find(r => r.id === lastSelectedFile.repoId)?.name}</span>
                             </div>
                             <div className="flex justify-between items-center text-xs">
-                                <span className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">创建时间</span>
+                                <span className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">上传时间</span>
                                 <span className="text-slate-600 font-bold">{lastSelectedFile.date}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-xs">
+                                <span className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">失效时间</span>
+                                <span className={`text-slate-600 font-bold ${lastSelectedFile.status === 'long_term' ? 'text-slate-300' : ''}`}>
+                                    {lastSelectedFile.status === 'long_term' ? '—' : (lastSelectedFile.expirationDate || '未设定')}
+                                </span>
                             </div>
                         </div>
 
@@ -903,18 +930,30 @@ export default function App() {
                                         className="w-full px-4 py-3 rounded-xl border border-slate-100 outline-none focus:border-[#007FFF] focus:ring-4 focus:ring-blue-50/50 transition-all font-bold text-slate-700 shadow-sm"
                                     />
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-2">有效期状态</label>
-                                    <select 
-                                        value={editingFile.status}
-                                        onChange={(e) => setEditingFile({...editingFile, status: e.target.value as ValidityStatus})}
-                                        className="w-full px-4 py-3 rounded-xl border border-slate-100 outline-none bg-white font-bold text-slate-600 cursor-pointer shadow-sm"
-                                    >
-                                        <option value="long_term">长期有效</option>
-                                        <option value="valid">有效期内</option>
-                                        <option value="expiring">临期</option>
-                                        <option value="expired">已过期</option>
-                                    </select>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-2">有效期状态</label>
+                                        <select 
+                                            value={editingFile.status}
+                                            onChange={(e) => setEditingFile({...editingFile, status: e.target.value as ValidityStatus})}
+                                            className="w-full px-4 py-3 rounded-xl border border-slate-100 outline-none bg-white font-bold text-slate-600 cursor-pointer shadow-sm"
+                                        >
+                                            <option value="long_term">长期有效</option>
+                                            <option value="valid">有效期内</option>
+                                            <option value="expiring">临期</option>
+                                            <option value="expired">已过期</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-2">失效时间</label>
+                                        <input 
+                                            type="date" 
+                                            disabled={editingFile.status === 'long_term'}
+                                            value={editingFile.expirationDate || ''}
+                                            onChange={(e) => setEditingFile({...editingFile, expirationDate: e.target.value})}
+                                            className={`w-full px-4 py-3 rounded-xl border border-slate-100 outline-none font-bold text-slate-700 shadow-sm ${editingFile.status === 'long_term' ? 'bg-slate-50 text-slate-300' : 'focus:border-[#007FFF]'}`}
+                                        />
+                                    </div>
                                 </div>
                                 {/* Tags Editor Integration */}
                                 <div>
@@ -973,49 +1012,42 @@ export default function App() {
                   )}
 
                   {modalMode === 'ingestion' && (
-                    <div className="space-y-8">
+                    <div className="space-y-8 h-full flex flex-col">
                         <div className="flex gap-2 p-1 bg-slate-100 rounded-xl w-fit">
-                            <button onClick={() => setIngestionTab('smart')} className={`px-4 py-1.5 text-xs font-black rounded-lg transition-all tracking-widest uppercase ${ingestionTab === 'smart' ? 'bg-white text-[#007FFF] shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>智能识别模式</button>
-                            <button onClick={() => setIngestionTab('manual')} className={`px-4 py-1.5 text-xs font-black rounded-lg transition-all tracking-widest uppercase ${ingestionTab === 'manual' ? 'bg-white text-[#007FFF] shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>手动整理模式</button>
+                            <button className="px-6 py-2 text-xs font-black rounded-lg transition-all tracking-widest uppercase bg-white text-[#007FFF] shadow-sm">智能识别模式</button>
                         </div>
 
-                        {ingestionTab === 'smart' ? (
-                            <div className="space-y-6">
-                                <div className="p-10 bg-blue-50/30 rounded-3xl border-2 border-dashed border-blue-100 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-blue-50/50 transition-all group">
-                                    <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-50/50 mb-6 group-hover:scale-110 transition-transform"><UploadCloud className="text-[#007FFF]" size={32} /></div>
-                                    <h4 className="font-bold text-slate-800 text-lg">拖拽文件或点击上传</h4>
-                                    <p className="text-xs text-slate-400 mt-2 font-medium">支持 PDF, Word, Excel, JPG, PNG (最大 50MB)</p>
-                                    <div className="mt-6 flex items-center gap-2 px-4 py-1.5 bg-[#007FFF] text-white rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-100">
-                                        <Sparkles size={12} /> AI 自动提取
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="p-4 bg-slate-50/50 rounded-2xl border border-slate-50">
-                                        <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-3">首选 AI 模板</p>
-                                        <select className="w-full bg-white border border-slate-100 rounded-xl p-3 text-sm font-bold text-slate-600 outline-none cursor-pointer">
-                                            <option>自动检测最佳模板</option>
-                                            {MOCK_TEMPLATES.filter(t => t.repoId === activeRepoId).map(t => <option key={t.id}>{t.name}</option>)}
-                                        </select>
-                                    </div>
-                                    <div className="p-4 bg-slate-50/50 rounded-2xl border border-slate-50">
-                                        <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-3">目标文件夹</p>
-                                        <div className="flex items-center gap-2 bg-white border border-slate-100 rounded-xl p-3 text-sm font-bold text-slate-400">
-                                            <FolderIcon size={14} className="text-slate-300" /> 根目录
-                                        </div>
+                        <div className="flex-1 space-y-6">
+                            <div className="flex-1 min-h-[280px] bg-blue-50/30 rounded-3xl border-2 border-dashed border-blue-100 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-blue-50/50 transition-all group p-10">
+                                <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-50/50 mb-6 group-hover:scale-110 transition-transform"><UploadCloud className="text-[#007FFF]" size={32} /></div>
+                                <h4 className="font-bold text-slate-800 text-lg">拖拽文件或点击上传</h4>
+                                <p className="text-xs text-slate-400 mt-2 font-medium">支持 PDF, Word, Excel, JPG, PNG (最大 50MB)</p>
+                                <div className="mt-8">
+                                    <div className="flex items-center gap-2 px-6 py-2 bg-[#007FFF] text-white rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-100 group-hover:brightness-110 transition-all">
+                                        <Sparkles size={14} /> AI 自动提取
                                     </div>
                                 </div>
                             </div>
-                        ) : (
-                            <div className="space-y-4">
-                                <div className="flex items-center gap-4 p-4 bg-amber-50/50 rounded-2xl border border-amber-100 text-amber-700">
-                                    <FileWarning size={20} className="shrink-0" />
-                                    <p className="text-xs leading-relaxed font-medium">手动整理模式下，AI 不会介入元数据提取。这可能导致知识库搜索效率降低。</p>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="p-4 bg-slate-50/50 rounded-2xl border border-slate-50">
+                                    <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-3">首选 AI 模板</p>
+                                    <div className="relative">
+                                      <select className="w-full bg-white border border-slate-100 rounded-xl p-3 text-sm font-bold text-slate-600 outline-none cursor-pointer appearance-none">
+                                          <option>自动检测最佳模板</option>
+                                          {MOCK_TEMPLATES.filter(t => t.repoId === activeRepoId).map(t => <option key={t.id}>{t.name}</option>)}
+                                      </select>
+                                      <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                                    </div>
                                 </div>
-                                <div className="h-48 border-2 border-dashed border-slate-100 rounded-3xl flex items-center justify-center text-slate-300 text-sm italic font-medium">
-                                    点击上传文件并手动输入摘要信息
+                                <div className="p-4 bg-slate-50/50 rounded-2xl border border-slate-50">
+                                    <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-3">目标文件夹</p>
+                                    <div className="flex items-center gap-2 bg-white border border-slate-100 rounded-xl p-3 text-sm font-bold text-slate-600 shadow-sm">
+                                        <FolderIcon size={14} className="text-[#007FFF]" /> {currentFolderId ? folders.find(f => f.id === currentFolderId)?.name : '根目录'}
+                                    </div>
                                 </div>
                             </div>
-                        )}
+                        </div>
                     </div>
                   )}
 
