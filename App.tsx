@@ -211,6 +211,13 @@ export default function App() {
     setFiles(prev => prev.map(f => f.id === id ? { ...f, isDeleted: false } : f));
   };
 
+  const batchRestore = () => {
+    if (!canOperateFiles) return;
+    setFiles(prev => prev.map(f => selectedIds.has(f.id) ? { ...f, isDeleted: false } : f));
+    setSelectedIds(new Set());
+    alert('选中的文件已成功还原');
+  };
+
   const permanentlyDeleteFile = (id: string) => {
     if (!canOperateFiles) return;
     if (window.confirm('此操作将永久删除该文件且无法恢复，确定继续吗？')) {
@@ -218,6 +225,14 @@ export default function App() {
       const nextSelected = new Set(selectedIds);
       nextSelected.delete(id);
       setSelectedIds(nextSelected);
+    }
+  };
+
+  const batchPermanentlyDelete = () => {
+    if (!canOperateFiles) return;
+    if (window.confirm(`此操作将永久删除选中的 ${selectedIds.size} 个文件且无法恢复，确定继续吗？`)) {
+      setFiles(prev => prev.filter(f => !selectedIds.has(f.id)));
+      setSelectedIds(new Set());
     }
   };
 
@@ -494,7 +509,7 @@ export default function App() {
                 </div>
 
                 {/* Bulk Action Bar - SLIDE DOWN OVERLAY */}
-                {selectedIds.size > 0 && currentView === 'repository' && !isTrashView && canOperateFiles && (
+                {selectedIds.size > 0 && currentView === 'repository' && canOperateFiles && (
                   <div className="absolute inset-0 bg-slate-900 z-20 flex items-center justify-between px-8 animate-in slide-in-from-top duration-300">
                     <div className="flex items-center gap-6">
                        <button onClick={() => setSelectedIds(new Set())} className="text-slate-400 hover:text-white transition-colors">
@@ -503,29 +518,48 @@ export default function App() {
                        <span className="text-white font-bold text-sm">已选中 {selectedIds.size} 项</span>
                     </div>
                     <div className="flex items-center gap-3">
-                       <button 
-                         onClick={() => setModalMode('batchTag')}
-                         className="flex items-center gap-2 px-4 py-1.5 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-500/20 transition-all"
-                       >
-                          <Tag size={14} /> 批量标签
-                       </button>
-                       <button 
-                         onClick={() => handleExport(selectedIds)}
-                         className="flex items-center gap-2 px-4 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-xs font-black uppercase tracking-widest shadow-lg shadow-blue-500/20 transition-all"
-                       >
-                          <FileArchive size={14} /> 批量导出
-                       </button>
-                       <button 
-                         onClick={() => {
-                           if (window.confirm(`确定将选中的 ${selectedIds.size} 项移入回收站吗？`)) {
-                              selectedIds.forEach(id => deleteFile(id));
-                              setSelectedIds(new Set());
-                           }
-                         }}
-                         className="flex items-center gap-2 px-4 py-1.5 bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white rounded-lg text-xs font-black uppercase tracking-widest transition-all"
-                       >
-                          <Trash2 size={14} /> 批量删除
-                       </button>
+                       {isTrashView ? (
+                         <>
+                            <button 
+                              onClick={batchRestore}
+                              className="flex items-center gap-2 px-4 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20 transition-all"
+                            >
+                               <RotateCcw size={14} /> 批量还原
+                            </button>
+                            <button 
+                              onClick={batchPermanentlyDelete}
+                              className="flex items-center gap-2 px-4 py-1.5 bg-rose-500 hover:bg-rose-600 text-white rounded-lg text-xs font-black uppercase tracking-widest shadow-lg shadow-rose-500/20 transition-all"
+                            >
+                               <Trash2 size={14} /> 批量彻底删除
+                            </button>
+                         </>
+                       ) : (
+                         <>
+                            <button 
+                              onClick={() => setModalMode('batchTag')}
+                              className="flex items-center gap-2 px-4 py-1.5 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-500/20 transition-all"
+                            >
+                               <Tag size={14} /> 批量标签
+                            </button>
+                            <button 
+                              onClick={() => handleExport(selectedIds)}
+                              className="flex items-center gap-2 px-4 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-xs font-black uppercase tracking-widest shadow-lg shadow-blue-500/20 transition-all"
+                            >
+                               <FileArchive size={14} /> 批量导出
+                            </button>
+                            <button 
+                              onClick={() => {
+                                if (window.confirm(`确定将选中的 ${selectedIds.size} 项移入回收站吗？`)) {
+                                   selectedIds.forEach(id => deleteFile(id));
+                                   setSelectedIds(new Set());
+                                }
+                              }}
+                              className="flex items-center gap-2 px-4 py-1.5 bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white rounded-lg text-xs font-black uppercase tracking-widest transition-all"
+                            >
+                               <Trash2 size={14} /> 批量删除
+                            </button>
+                         </>
+                       )}
                     </div>
                   </div>
                 )}
