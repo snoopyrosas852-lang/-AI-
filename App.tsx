@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { 
   UploadCloud, 
   Database, 
@@ -58,9 +58,14 @@ import {
   Copy,
   ExternalLink,
   FileArchive,
-  User as UserIcon
+  User as UserIcon,
+  MessageSquare,
+  Send,
+  Bot,
+  User as UserChatIcon
 } from 'lucide-react';
 import { ViewState, FileItem, Folder, Repository, ValidityStatus, AITemplate, UserRole, User } from './types';
+import { GoogleGenAI } from "@google/genai";
 
 // Mock Data
 const MOCK_REPOS: Repository[] = [
@@ -126,7 +131,7 @@ const INITIAL_FILES: FileItem[] = [
   { id: '5', name: '员工入职手册 2024版.pdf', uploader: '王技术', type: 'PDF', size: '5.8 MB', date: '2024-01-05', tags: ['#行政', '#入职'], summary: '针对新入职员工的企业文化培训、日常办公系统操作指南及福利政策说明。', status: 'long_term', repoId: 'repo_hr', folderId: null },
   { id: '6', name: 'NexusAI API 安全审计报告.pdf', uploader: '张小钉', type: 'PDF', size: '2.3 MB', date: '2024-03-22', expirationDate: '2024-06-22', tags: ['#安全', '#审计'], summary: '针对 NexusAI 外部接口的渗透测试报告，修复了两个高危 SQL 注入漏洞和一个逻辑越权问题。', status: 'valid', repoId: 'repo_rd', folderId: 'f1' },
   { id: '7', name: '2024 政府采购投标资质全集.zip', uploader: '孙投标', type: 'ZIP', size: '128.4 MB', date: '2024-03-23', expirationDate: '2024-03-30', tags: ['#资质', '#投标'], summary: '包含最新的三证合一、社保证明、纳税证明等投标必备扫描件集合。', status: 'expiring', repoId: 'repo_bid', folderId: 'f4' },
-  { id: '8', name: '软件服务采购协议 (模板).docx', uploader: '赵审计', type: 'DOCX', size: '0.8 MB', date: '2024-02-14', tags: ['#合同', '#法务'], summary: '标准的 IT 软件采购合同范本，包含 SLA 保障条款和数据隐私保护协议。', status: 'long_term', repoId: 'repo_legal', folderId: null },
+  { id: '8', name: '软件服务采购协议 (模板).docx', uploader: '赵审计', type: 'DOCX', size: '0.8 MB', date: '2024-02-14', tags: ['#合同', '#法务'], summary: '标准的 IT 软件采购合同范本，包含 SLA 保障条款 and 数据隐私保护协议。', status: 'long_term', repoId: 'repo_legal', folderId: null },
   { id: '9', name: '2024 年度晋升评定标准 V1.xlsx', uploader: '王技术', type: 'XLSX', size: '1.2 MB', date: '2024-03-01', expirationDate: '2025-03-01', tags: ['#HR', '#考核'], summary: '详细罗列了研发、产品、职能序列的职级评定维度及对应的薪资带宽。', status: 'valid', repoId: 'repo_hr', folderId: null },
   { id: '10', name: '竞争对手产品对标 analysis 2024Q1.pptx', uploader: '孙投标', type: 'PPTX', size: '22.4 MB', date: '2024-03-12', expirationDate: '2024-04-12', tags: ['#市场', '#竞对'], summary: '对业内前三家主流 AI 知识库产品的核心功能、价格体系及市场占有率进行的深度调研报告。', status: 'valid', repoId: 'repo_bid', folderId: null },
   { id: '11', name: '数据处理安全合规指引.pdf', uploader: '赵审计', type: 'PDF', size: '3.1 MB', date: '2023-11-20', tags: ['#合规', '#法务'], summary: '根据《个人信息保护法》制定的企业内部数据处理操作手册。', status: 'long_term', repoId: 'repo_legal', folderId: null },
@@ -178,10 +183,10 @@ export default function App() {
 
   // Handle auto-switching repo if current one becomes unavailable
   React.useEffect(() => {
-    if (!availableRepos.find(r => r.id === activeRepoId) && !isTrashView) {
+    if (!availableRepos.find(r => r.id === activeRepoId) && !isTrashView && currentView === 'repository') {
         setActiveRepoId(availableRepos[0]?.id || '');
     }
-  }, [availableRepos, activeRepoId, isTrashView]);
+  }, [availableRepos, activeRepoId, isTrashView, currentView]);
 
   const handleUploadComplete = () => {
     setIsProcessing(true);
@@ -373,6 +378,8 @@ export default function App() {
         
         <nav className="flex-1 px-4 space-y-1">
           <NavItem icon={<Database size={20} />} label="知识仓库" active={currentView === 'repository'} onClick={() => { setCurrentView('repository'); setIsTrashView(false); setActiveRepoId(availableRepos[0]?.id || ''); }} />
+          <NavItem icon={<MessageSquare size={20} />} label="AI 问答助手" active={currentView === 'assistant'} onClick={() => { setCurrentView('assistant'); }} />
+          
           {canManageTemplates && (
             <NavItem icon={<Layers size={20} />} label="AI 模板" active={currentView === 'templates'} onClick={() => { setCurrentView('templates'); setIsTrashView(false); setActiveRepoId(availableRepos[0]?.id || ''); }} />
           )}
@@ -415,7 +422,9 @@ export default function App() {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden relative">
-        {(currentView === 'repository' || currentView === 'templates') ? (
+        {currentView === 'assistant' ? (
+          <ChatAssistant files={files} currentUser={currentUser} />
+        ) : (currentView === 'repository' || currentView === 'templates') ? (
           <div className="flex-1 flex overflow-hidden">
              <aside className="w-64 border-r border-slate-50 bg-[#F9FAFB] flex flex-col shrink-0">
                 <div className="p-4">
@@ -1163,6 +1172,134 @@ export default function App() {
           </div>
         )}
       </main>
+    </div>
+  );
+}
+
+// AI Assistant Component
+function ChatAssistant({ files, currentUser }: { files: FileItem[], currentUser: User }) {
+  const [messages, setMessages] = useState<{ role: 'user' | 'assistant', content: string }[]>([
+    { role: 'assistant', content: `你好，${currentUser.name}！我是 NexusAI 助手。我可以帮你快速查找文档、总结关键信息或回答关于知识库的问题。你想了解什么？` }
+  ]);
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages, isLoading]);
+
+  const handleSend = async () => {
+    if (!input.trim() || isLoading) return;
+
+    const userMessage = input;
+    setInput('');
+    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    setIsLoading(true);
+
+    try {
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      
+      // Prepare knowledge base context
+      const context = files.map(f => ({
+        name: f.name,
+        summary: f.summary,
+        tags: f.tags,
+        uploader: f.uploader,
+        repo: MOCK_REPOS.find(r => r.id === f.repoId)?.name
+      }));
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: userMessage,
+        config: {
+          systemInstruction: `你是 NexusAI 智能助手。你能够根据以下提供的公司知识库文档概要回答用户问题。
+          回答时请保持专业、简洁。如果涉及到具体文件，请明确提及文件名。
+          
+          知识库内容概要：
+          ${JSON.stringify(context)}
+          
+          如果用户询问的内容不在上述概要中，请委婉告知并尝试根据常识提供帮助。`
+        }
+      });
+
+      const aiResponse = response.text || "抱歉，我暂时无法处理您的请求。";
+      setMessages(prev => [...prev, { role: 'assistant', content: aiResponse }]);
+    } catch (error) {
+      console.error("AI Assistant Error:", error);
+      setMessages(prev => [...prev, { role: 'assistant', content: "抱歉，连接 AI 服务时出现了一些问题。请稍后再试。" }]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex-1 flex flex-col bg-slate-50 overflow-hidden">
+      {/* Header */}
+      <div className="px-8 py-6 bg-white border-b border-slate-100 flex items-center gap-3">
+        <div className="w-10 h-10 bg-blue-50 text-[#007FFF] rounded-xl flex items-center justify-center shadow-sm">
+          <Bot size={24} />
+        </div>
+        <div>
+          <h2 className="text-xl font-bold text-slate-800">AI 问答助手</h2>
+          <p className="text-xs text-slate-400 font-medium">深度理解知识库，助你高效决策</p>
+        </div>
+      </div>
+
+      {/* Chat Messages */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto p-8 space-y-6">
+        {messages.map((m, i) => (
+          <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2 duration-300`}>
+            <div className={`flex gap-4 max-w-[80%] ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 shadow-sm ${m.role === 'user' ? 'bg-[#007FFF] text-white' : 'bg-white text-slate-400 border border-slate-100'}`}>
+                {m.role === 'user' ? <UserChatIcon size={16} /> : <Bot size={16} />}
+              </div>
+              <div className={`p-4 rounded-2xl shadow-sm text-sm leading-relaxed ${m.role === 'user' ? 'bg-[#007FFF] text-white rounded-tr-none' : 'bg-white text-slate-700 border border-slate-100 rounded-tl-none'}`}>
+                {m.content}
+              </div>
+            </div>
+          </div>
+        ))}
+        {isLoading && (
+          <div className="flex justify-start">
+             <div className="flex gap-4 max-w-[80%] flex-row">
+                <div className="w-8 h-8 rounded-lg bg-white text-slate-400 border border-slate-100 flex items-center justify-center shrink-0 shadow-sm">
+                  <Bot size={16} />
+                </div>
+                <div className="p-4 bg-white border border-slate-100 rounded-2xl rounded-tl-none shadow-sm flex items-center gap-2">
+                  <RefreshCcw size={14} className="animate-spin text-[#007FFF]" />
+                  <span className="text-xs text-slate-400 font-bold uppercase tracking-widest">思考中...</span>
+                </div>
+             </div>
+          </div>
+        )}
+      </div>
+
+      {/* Input Area */}
+      <div className="p-8 pt-0">
+        <div className="max-w-4xl mx-auto relative group">
+          <input 
+            type="text" 
+            placeholder="问问我：研发中心最近有什么进度？" 
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleSend()}
+            className="w-full pl-6 pr-24 py-5 bg-white border border-slate-200 rounded-2xl shadow-xl shadow-slate-200/50 outline-none focus:border-[#007FFF] focus:ring-4 focus:ring-blue-50/50 transition-all font-medium text-slate-700 text-lg"
+          />
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+            <button 
+              onClick={handleSend}
+              disabled={isLoading}
+              className={`p-3 rounded-xl shadow-lg transition-all active:scale-95 ${isLoading || !input.trim() ? 'bg-slate-100 text-slate-300' : 'bg-[#007FFF] text-white hover:brightness-110 shadow-blue-100'}`}
+            >
+              <Send size={20} />
+            </button>
+          </div>
+        </div>
+        <p className="text-center text-[10px] text-slate-300 font-bold uppercase tracking-widest mt-4">Powered by NexusAI Intelligent Core</p>
+      </div>
     </div>
   );
 }

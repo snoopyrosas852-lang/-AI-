@@ -1,5 +1,5 @@
 
-export type ViewState = 'repository' | 'templates' | 'settings' | 'members';
+export type ViewState = 'repository' | 'templates' | 'settings' | 'members' | 'assistant';
 
 export type ValidityStatus = 'long_term' | 'valid' | 'expiring' | 'expired';
 
