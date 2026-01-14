@@ -51,7 +51,9 @@ import {
   UserCheck,
   Key,
   Info,
-  FileWarning
+  FileWarning,
+  LayoutGrid,
+  UserMinus
 } from 'lucide-react';
 import { ViewState, FileItem, Folder, Repository, ValidityStatus, AITemplate, UserRole, User } from './types';
 
@@ -123,6 +125,7 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState<User>(MOCK_USERS[0]);
   const [currentView, setCurrentView] = useState<ViewState>('repository');
   const [activeRepoId, setActiveRepoId] = useState<string>('repo_rd');
+  const [activeDeptFilterId, setActiveDeptFilterId] = useState<string>('all');
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
   const [isTrashView, setIsTrashView] = useState(false);
   const [repoSearchQuery, setRepoSearchQuery] = useState('');
@@ -242,27 +245,28 @@ export default function App() {
 
   const getRoleBadge = (role: UserRole) => {
     switch(role) {
-      case 'super_admin': return { label: '超级管理员', color: 'bg-indigo-100 text-indigo-700', icon: <Shield size={10}/> };
-      case 'dept_admin': return { label: '部门管理员', color: 'bg-blue-100 text-blue-700', icon: <UserCheck size={10}/> };
-      case 'dept_collaborator': return { label: '部门协作者', color: 'bg-teal-100 text-teal-700', icon: <Edit size={10}/> };
-      case 'viewer': return { label: '查看者', color: 'bg-slate-100 text-slate-700', icon: <Eye size={10}/> };
+      case 'super_admin': return { label: '超级管理员', color: 'bg-indigo-50 text-indigo-600 border-indigo-100', icon: <Shield size={10}/> };
+      case 'dept_admin': return { label: '部门管理员', color: 'bg-blue-50 text-blue-600 border-blue-100', icon: <UserCheck size={10}/> };
+      case 'dept_collaborator': return { label: '部门协作者', color: 'bg-emerald-50 text-emerald-600 border-emerald-100', icon: <Edit size={10}/> };
+      case 'viewer': return { label: '查看者', color: 'bg-slate-50 text-slate-500 border-slate-200', icon: <Eye size={10}/> };
     }
   };
 
-  const RepoIcon = ({ name }: { name: string }) => {
+  const RepoIcon = ({ name, active }: { name: string, active?: boolean }) => {
+    const className = active ? "text-[#007FFF]" : "text-slate-400";
     switch (name) {
-      case 'code': return <Code size={18} />;
-      case 'briefcase': return <Briefcase size={18} />;
-      case 'users': return <Users size={18} />;
-      case 'shield': return <ShieldCheck size={18} />;
-      default: return <Database size={18} />;
+      case 'code': return <Code size={18} className={className} />;
+      case 'briefcase': return <Briefcase size={18} className={className} />;
+      case 'users': return <Users size={18} className={className} />;
+      case 'shield': return <ShieldCheck size={18} className={className} />;
+      default: return <Database size={18} className={className} />;
     }
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50 font-sans text-slate-900">
+    <div className="flex h-screen overflow-hidden bg-white font-sans text-slate-900">
       {/* Sidebar */}
-      <aside className="w-64 border-r border-slate-200 bg-white flex flex-col shrink-0">
+      <aside className="w-64 border-r border-slate-100 bg-white flex flex-col shrink-0">
         <div className="p-6 flex items-center gap-3">
           <div className="w-8 h-8 bg-[#007FFF] rounded-lg flex items-center justify-center text-white font-bold text-xl">N</div>
           <span className="text-xl font-bold tracking-tight">NexusAI</span>
@@ -273,37 +277,36 @@ export default function App() {
           {canManageTemplates && (
             <NavItem icon={<Layers size={20} />} label="AI 模板" active={currentView === 'templates'} onClick={() => { setCurrentView('templates'); setIsTrashView(false); setActiveRepoId(availableRepos[0]?.id || ''); }} />
           )}
-          <div className="pt-6 pb-2 px-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">系统设置</div>
+          
+          <div className="pt-6 pb-2 px-2 text-xs font-semibold text-slate-300 uppercase tracking-widest">系统设置</div>
           {canInvite && (
              <NavItem icon={<Users size={20} />} label="团队管理" active={currentView === 'members'} onClick={() => setCurrentView('members')} />
           )}
-          <NavItem icon={<Settings size={20} />} label="账户与偏好" active={currentView === 'settings'} onClick={() => setCurrentView('settings')} />
         </nav>
 
-        {/* User Profile & Role Switcher for Mocking */}
-        <div className="p-4 border-t border-slate-100">
+        {/* User Profile */}
+        <div className="p-4 border-t border-slate-50">
           <div className="group relative">
             <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer">
-              <img src={currentUser.avatar} className="w-10 h-10 rounded-full border border-slate-200" alt="Avatar" />
+              <img src={currentUser.avatar} className="w-8 h-8 rounded-full border border-slate-200" alt="Avatar" />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold truncate text-slate-700">{currentUser.name}</p>
-                <div className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${getRoleBadge(currentUser.role).color}`}>
+                <p className="text-sm font-bold truncate text-slate-700 leading-tight">{currentUser.name}</p>
+                <div className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest ${getRoleBadge(currentUser.role).color}`}>
                   {getRoleBadge(currentUser.role).label}
                 </div>
               </div>
             </div>
             
-            {/* Simple Role Switcher Overlay for Demo */}
-            <div className="absolute bottom-full left-0 right-0 mb-2 bg-white rounded-xl shadow-xl border border-slate-200 p-2 opacity-0 group-hover:opacity-100 transition-opacity z-50 pointer-events-none group-hover:pointer-events-auto">
-                <p className="text-[10px] font-bold text-slate-400 px-2 py-1 uppercase tracking-widest">切换角色 (仅演示)</p>
+            <div className="absolute bottom-full left-0 right-0 mb-2 bg-white rounded-xl shadow-2xl border border-slate-100 p-2 opacity-0 group-hover:opacity-100 transition-opacity z-50 pointer-events-none group-hover:pointer-events-auto">
+                <p className="text-[10px] font-bold text-slate-300 px-2 py-1 uppercase tracking-widest">切换角色 (仅演示)</p>
                 {MOCK_USERS.map(u => (
                     <button 
                         key={u.id}
                         onClick={() => { setCurrentUser(u); setCurrentView('repository'); }}
-                        className={`w-full text-left px-3 py-1.5 rounded-lg text-xs hover:bg-slate-50 flex items-center justify-between ${currentUser.id === u.id ? 'bg-blue-50 text-blue-600 font-bold' : 'text-slate-600'}`}
+                        className={`w-full text-left px-3 py-2 rounded-lg text-xs hover:bg-slate-50 flex items-center justify-between ${currentUser.id === u.id ? 'bg-blue-50 text-[#007FFF] font-bold' : 'text-slate-500'}`}
                     >
                         {u.name}
-                        <span className="text-[10px] opacity-60">({u.role})</span>
+                        <span className="text-[10px] opacity-40">({u.role})</span>
                     </button>
                 ))}
             </div>
@@ -315,27 +318,27 @@ export default function App() {
       <main className="flex-1 flex flex-col overflow-hidden relative">
         {(currentView === 'repository' || currentView === 'templates') ? (
           <div className="flex-1 flex overflow-hidden">
-             <aside className="w-64 border-r border-slate-100 bg-slate-50/50 flex flex-col shrink-0">
+             <aside className="w-64 border-r border-slate-50 bg-[#F9FAFB] flex flex-col shrink-0">
                 <div className="p-4">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2 mb-4">部门知识库</p>
+                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest px-2 mb-4">部门知识库</p>
                     <div className="space-y-1">
                     {availableRepos.map(repo => (
                         <button
                         key={repo.id}
                         onClick={() => { setActiveRepoId(repo.id); setIsTrashView(false); setCurrentFolderId(null); setSelectedIds(new Set()); }}
-                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${activeRepoId === repo.id && !isTrashView ? 'bg-white text-[#007FFF] shadow-sm border border-slate-100' : 'text-slate-600 hover:bg-slate-200/50'}`}
+                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${activeRepoId === repo.id && !isTrashView ? 'bg-white text-[#007FFF] shadow-sm' : 'text-slate-500 hover:bg-slate-100/50'}`}
                         >
-                        <RepoIcon name={repo.icon} />
+                        {activeRepoId === repo.id && !isTrashView ? <ChevronRight size={14} className="text-[#007FFF]" /> : <RepoIcon name={repo.icon} active={false} />}
                         {repo.name}
                         </button>
                     ))}
                     </div>
                     
                     {currentView === 'repository' && canOperateFiles && (
-                    <div className="mt-8 pt-6 border-t border-slate-200">
+                    <div className="mt-8 pt-6 border-t border-slate-100">
                         <button
                         onClick={() => { setIsTrashView(true); setActiveRepoId(''); setSelectedIds(new Set()); }}
-                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${isTrashView ? 'bg-slate-200 text-slate-900 shadow-inner' : 'text-slate-500 hover:bg-slate-200/50'}`}
+                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${isTrashView ? 'bg-slate-100 text-slate-900' : 'text-slate-400 hover:bg-slate-100/50'}`}
                         >
                         <Trash2 size={18} />
                         回收站
@@ -347,7 +350,7 @@ export default function App() {
 
             {/* Repository Main Area */}
             <div className="flex-1 flex flex-col bg-white overflow-hidden relative">
-              <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
+              <div className="px-8 py-4 border-b border-slate-50 flex items-center justify-between shrink-0 h-16">
                 <div className="flex items-center gap-2">
                   {(currentFolderId || isTrashView) && (
                     <button 
@@ -360,26 +363,26 @@ export default function App() {
                         }
                         setSelectedIds(new Set()); 
                       }}
-                      className="p-1 hover:bg-slate-100 rounded-md text-slate-500 mr-2"
+                      className="p-1 hover:bg-slate-50 rounded-md text-slate-400 mr-2"
                     >
                       <ArrowLeft size={16} />
                     </button>
                   )}
                   <h2 className="text-lg font-bold text-slate-800">
                     {isTrashView ? '回收站' : currentRepo?.name}
-                    {isViewer && <span className="ml-3 text-xs font-normal text-slate-400">(只读)</span>}
+                    {isViewer && <span className="ml-3 text-xs font-normal text-slate-300">(只读)</span>}
                   </h2>
                 </div>
                 
                 <div className="flex items-center gap-2">
                   <div className="relative mr-2">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" size={14} />
                     <input 
                       type="text" 
                       placeholder="搜索文档、标签..." 
                       value={repoSearchQuery}
                       onChange={(e) => setRepoSearchQuery(e.target.value)}
-                      className="w-48 bg-slate-50 border border-slate-200 rounded-lg py-1.5 pl-9 pr-4 text-xs focus:bg-white focus:ring-4 focus:ring-blue-100 focus:border-[#007FFF] transition-all outline-none"
+                      className="w-56 bg-slate-50 border border-slate-100 rounded-lg py-1.5 pl-9 pr-4 text-xs focus:bg-white focus:ring-4 focus:ring-blue-50/50 focus:border-blue-200 transition-all outline-none"
                     />
                   </div>
 
@@ -387,13 +390,13 @@ export default function App() {
                     <>
                       <button 
                         onClick={() => setModalMode('newFolder')}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-600 bg-slate-50 border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors"
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors shadow-sm"
                       >
                         <FolderPlus size={14} /> 新建文件夹
                       </button>
                       <button 
                         onClick={() => { setModalMode('ingestion'); setIngestionTab('smart'); }}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg border border-blue-100 text-[#007FFF] bg-blue-50 hover:bg-blue-100 transition-all shadow-sm`}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-black rounded-lg border border-blue-100 text-[#007FFF] bg-blue-50/50 hover:bg-blue-50 transition-all shadow-sm`}
                       >
                         <UploadCloud size={14} /> 智能入库
                       </button>
@@ -403,7 +406,7 @@ export default function App() {
                   {currentView === 'templates' && canManageTemplates && (
                     <button 
                         onClick={() => { setSelectedTemplate(null); setModalMode('create'); }}
-                        className="flex items-center gap-2 px-4 py-2 bg-[#007FFF] text-white rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors shadow-sm"
+                        className="flex items-center gap-2 px-4 py-2 bg-[#007FFF] text-white rounded-lg text-sm font-bold hover:bg-blue-600 transition-colors shadow-lg shadow-blue-100"
                     >
                         <Plus size={18} /> 新建模板
                     </button>
@@ -413,11 +416,11 @@ export default function App() {
 
               {/* View Rendering */}
               {currentView === 'repository' ? (
-                <div className="flex-1 overflow-y-auto mt-2">
+                <div className="flex-1 overflow-y-auto">
                    <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="border-b border-slate-50 text-[11px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50/30">
-                            <th className="px-6 py-3 w-10">
+                            <tr className="text-[11px] font-bold text-slate-400 uppercase tracking-widest bg-white sticky top-0 z-10">
+                            <th className="px-8 py-4 w-10">
                                 <button 
                                 onClick={() => {
                                     if (selectedIds.size > 0) setSelectedIds(new Set());
@@ -426,38 +429,38 @@ export default function App() {
                                     setSelectedIds(all);
                                     }
                                 }}
-                                className="text-slate-300 hover:text-slate-500"
+                                className="text-slate-200 hover:text-slate-400"
                                 >
                                 {selectedIds.size > 0 ? <CheckSquare size={18} className="text-[#007FFF]" /> : <Square size={18} />}
                                 </button>
                             </th>
-                            <th className="px-2 py-3 font-semibold">名称</th>
-                            <th className="px-4 py-3 font-semibold">类型</th>
-                            <th className="px-4 py-3 font-semibold">标签</th>
-                            <th className="px-4 py-3 font-semibold">状态</th>
-                            <th className="px-4 py-3 font-semibold">最后更新</th>
-                            <th className="px-6 py-3 font-semibold text-right">操作</th>
+                            <th className="px-2 py-4 font-bold">名称</th>
+                            <th className="px-4 py-4 font-bold">类型</th>
+                            <th className="px-4 py-4 font-bold">标签</th>
+                            <th className="px-4 py-4 font-bold">状态</th>
+                            <th className="px-4 py-4 font-bold">最后更新</th>
+                            <th className="px-8 py-4 font-bold text-right">操作</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
                             {filteredFolders.map(folder => (
-                                <tr key={folder.id} className={`group hover:bg-slate-50 transition-colors cursor-pointer ${selectedIds.has(folder.id) ? 'bg-blue-50/30' : ''}`}>
-                                    <td className="px-6 py-4" onClick={(e) => { e.stopPropagation(); toggleSelection(folder.id); }}>
+                                <tr key={folder.id} className={`group hover:bg-slate-50/50 transition-colors cursor-pointer ${selectedIds.has(folder.id) ? 'bg-blue-50/30' : ''}`}>
+                                    <td className="px-8 py-4" onClick={(e) => { e.stopPropagation(); toggleSelection(folder.id); }}>
                                         {selectedIds.has(folder.id) ? <CheckSquare size={18} className="text-[#007FFF]" /> : <Square size={18} className="text-slate-200 group-hover:text-slate-300" />}
                                     </td>
                                     <td className="px-2 py-4" onClick={() => { setCurrentFolderId(folder.id); setSelectedIds(new Set()); }}>
                                         <div className="flex items-center gap-3">
-                                            <FolderIcon size={20} className="text-[#007FFF] fill-blue-50" />
+                                            <FolderIcon size={18} className="text-[#007FFF] fill-blue-50/50" />
                                             <span className="text-sm font-bold text-slate-700">{folder.name}</span>
                                         </div>
                                     </td>
                                     <td className="px-4 py-4 text-xs font-medium text-slate-400">文件夹</td>
                                     <td className="px-4 py-4">—</td>
                                     <td className="px-4 py-4">—</td>
-                                    <td className="px-4 py-4 text-xs text-slate-400">2024-03-21</td>
-                                    <td className="px-6 py-4 text-right">
+                                    <td className="px-4 py-4 text-xs text-slate-300 font-medium">2024-03-21</td>
+                                    <td className="px-8 py-4 text-right">
                                         {canOperateFiles && (
-                                            <button className="p-1.5 text-slate-300 hover:text-slate-600 rounded-lg transition-all opacity-0 group-hover:opacity-100">
+                                            <button className="p-1.5 text-slate-200 hover:text-slate-500 rounded-lg transition-all opacity-0 group-hover:opacity-100">
                                                 <MoreHorizontal size={16} />
                                             </button>
                                         )}
@@ -465,39 +468,39 @@ export default function App() {
                                 </tr>
                             ))}
                             {filteredFiles.map(file => (
-                                <tr key={file.id} className={`group hover:bg-slate-50 transition-all cursor-default ${selectedIds.has(file.id) ? 'bg-blue-50/30' : ''}`}>
-                                    <td className="px-6 py-4" onClick={() => toggleSelection(file.id)}>
+                                <tr key={file.id} className={`group hover:bg-slate-50/50 transition-all cursor-default ${selectedIds.has(file.id) ? 'bg-blue-50/30' : ''}`}>
+                                    <td className="px-8 py-4" onClick={() => toggleSelection(file.id)}>
                                         {selectedIds.has(file.id) ? <CheckSquare size={18} className="text-[#007FFF]" /> : <Square size={18} className="text-slate-200 group-hover:text-slate-300" />}
                                     </td>
                                     <td className="px-2 py-4 max-w-[280px]">
                                         <div className="flex items-center gap-3 relative">
-                                            {['JPG', 'JPEG', 'PNG'].includes(file.type.toUpperCase()) ? <ImageIcon size={20} className="text-indigo-400 shrink-0" /> : <FileText size={20} className="text-slate-400 shrink-0" />}
-                                            <p onClick={() => { setPreviewFile(file); setModalMode('preview'); }} className="text-sm font-bold text-slate-700 truncate hover:text-blue-600 cursor-pointer transition-colors">
+                                            {['JPG', 'JPEG', 'PNG'].includes(file.type.toUpperCase()) ? <ImageIcon size={18} className="text-indigo-400 shrink-0" /> : <FileText size={18} className="text-slate-400 shrink-0" />}
+                                            <p onClick={() => { setPreviewFile(file); setModalMode('preview'); }} className="text-sm font-bold text-slate-700 truncate hover:text-[#007FFF] cursor-pointer transition-colors">
                                                 {file.name}
                                             </p>
                                         </div>
                                     </td>
                                     <td className="px-4 py-4">
-                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">{file.type}</span>
+                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">{file.type}</span>
                                     </td>
                                     <td className="px-4 py-4">
                                         <div className="flex flex-wrap gap-1 max-w-[150px]">
-                                            {file.tags.map(tag => <span key={tag} className="px-1.5 py-0.5 bg-slate-100 text-slate-500 text-[10px] font-bold rounded">{tag}</span>)}
+                                            {file.tags.map(tag => <span key={tag} className="px-1.5 py-0.5 bg-slate-50 text-slate-400 text-[10px] font-bold rounded border border-slate-100">{tag}</span>)}
                                         </div>
                                     </td>
                                     <td className="px-4 py-4">
-                                        <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md border text-[10px] font-bold ${getStatusInfo(file.status).color}`}>
-                                            {getStatusInfo(file.status).icon} {getStatusInfo(file.status).label}
+                                        <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-black tracking-widest uppercase border ${getStatusInfo(file.status).color}`}>
+                                            {getStatusInfo(file.status).label}
                                         </div>
                                     </td>
-                                    <td className="px-4 py-4 text-xs text-slate-400 font-medium">{file.date}</td>
-                                    <td className="px-6 py-4 text-right">
+                                    <td className="px-4 py-4 text-xs text-slate-300 font-medium">{file.date}</td>
+                                    <td className="px-8 py-4 text-right">
                                         <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button onClick={() => { setPreviewFile(file); setModalMode('preview'); }} className="p-1.5 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg" title="预览"><Eye size={16} /></button>
+                                            <button onClick={() => { setPreviewFile(file); setModalMode('preview'); }} className="p-1.5 text-slate-300 hover:text-[#007FFF] hover:bg-blue-50 rounded-lg" title="预览"><Eye size={16} /></button>
                                             {canOperateFiles && (
                                                 <>
-                                                    <button onClick={() => { setEditingFile(file); setModalMode('editFile'); }} className="p-1.5 text-slate-400 hover:text-[#007FFF] hover:bg-blue-50 rounded-lg"><Edit size={16} /></button>
-                                                    <button onClick={() => deleteFile(file.id)} className="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg"><Trash2 size={16} /></button>
+                                                    <button onClick={() => { setEditingFile(file); setModalMode('editFile'); }} className="p-1.5 text-slate-300 hover:text-[#007FFF] hover:bg-blue-50 rounded-lg"><Edit size={16} /></button>
+                                                    <button onClick={() => deleteFile(file.id)} className="p-1.5 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg"><Trash2 size={16} /></button>
                                                 </>
                                             )}
                                         </div>
@@ -508,22 +511,22 @@ export default function App() {
                     </table>
                 </div>
               ) : (
-                <div className="flex-1 overflow-y-auto p-8 bg-slate-50/30">
+                <div className="flex-1 overflow-y-auto p-8 bg-slate-50/20">
                     <div className="max-w-6xl mx-auto">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {filteredTemplates.map(template => (
-                                <div key={template.id} className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm hover:shadow-md transition-all group relative">
+                                <div key={template.id} className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm hover:shadow-md transition-all group relative">
                                     <div className="absolute top-4 right-4">
-                                        <button onClick={() => { setSelectedTemplate(template); setModalMode('edit'); }} className="p-2 text-slate-300 hover:text-slate-600 hover:bg-slate-100 rounded-lg">
+                                        <button onClick={() => { setSelectedTemplate(template); setModalMode('edit'); }} className="p-2 text-slate-200 hover:text-slate-500 hover:bg-slate-50 rounded-lg">
                                             <MoreVertical size={18} />
                                         </button>
                                     </div>
-                                    <div className="w-12 h-12 bg-blue-50 text-[#007FFF] rounded-xl flex items-center justify-center mb-4"><Zap size={24} /></div>
+                                    <div className="w-12 h-12 bg-blue-50/50 text-[#007FFF] rounded-xl flex items-center justify-center mb-4"><Zap size={24} /></div>
                                     <h3 className="font-bold text-slate-800 text-lg mb-2">{template.name}</h3>
-                                    <p className="text-sm text-slate-500 line-clamp-2 mb-4 h-10">{template.description}</p>
-                                    <div className="mt-6 flex items-center justify-between">
-                                        <span className="text-[10px] font-bold text-slate-300 uppercase">已处理 {template.usageCount} 次</span>
-                                        <button onClick={() => { setSelectedTemplate(template); setModalMode('details'); }} className="text-sm font-bold text-[#007FFF] flex items-center gap-1">详情 <ChevronRight size={14} /></button>
+                                    <p className="text-sm text-slate-500 line-clamp-2 mb-4 h-10 leading-relaxed">{template.description}</p>
+                                    <div className="mt-6 pt-6 border-t border-slate-50 flex items-center justify-between">
+                                        <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">已处理 {template.usageCount} 次</span>
+                                        <button onClick={() => { setSelectedTemplate(template); setModalMode('details'); }} className="text-sm font-bold text-[#007FFF] flex items-center gap-1 hover:underline underline-offset-4 transition-all">详情 <ChevronRight size={14} /></button>
                                     </div>
                                 </div>
                             ))}
@@ -535,93 +538,145 @@ export default function App() {
           </div>
         ) : currentView === 'members' ? (
           <div className="flex-1 flex flex-col bg-white overflow-hidden">
-             <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between">
+             {/* Team Management Header */}
+             <div className="px-8 py-6 flex items-center justify-between shrink-0">
                 <div>
-                   <h2 className="text-2xl font-bold text-slate-800">团队管理</h2>
-                   <p className="text-sm text-slate-400 mt-1">
-                     {isSuperAdmin ? '管理全平台成员及权限等级' : `管理 ${currentRepo?.name} 的协作者`}
+                   <h2 className="text-2xl font-bold text-slate-800 tracking-tight">团队管理</h2>
+                   <p className="text-xs text-slate-400 mt-1 font-medium leading-relaxed">
+                     管理全平台成员及权限等级
                    </p>
                 </div>
                 <button 
                    onClick={() => setModalMode('invite')}
-                   className="flex items-center gap-2 px-4 py-2.5 bg-[#007FFF] text-white rounded-xl text-sm font-bold hover:bg-blue-600 transition-all shadow-lg shadow-blue-200"
+                   className="flex items-center gap-2 px-4 py-2 bg-[#007FFF] text-white rounded-lg text-sm font-bold hover:bg-blue-600 transition-all shadow-lg shadow-blue-100"
                 >
-                   <UserPlus size={18}/> 邀请成员
+                   <UserPlus size={16}/> 邀请成员
                 </button>
              </div>
              
-             <div className="flex-1 overflow-y-auto p-8">
-                <div className="max-w-6xl mx-auto">
-                    <div className="grid grid-cols-1 gap-4">
-                        <div className="bg-slate-50/50 border border-slate-100 rounded-2xl overflow-hidden">
-                            <table className="w-full text-left">
-                                <thead className="bg-white border-b border-slate-100">
-                                    <tr className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
-                                        <th className="px-6 py-4">成员姓名</th>
-                                        <th className="px-6 py-4">角色权限</th>
-                                        <th className="px-6 py-4">对应部门/库</th>
-                                        <th className="px-6 py-4">最后在线</th>
-                                        <th className="px-6 py-4 text-right">管理</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-50">
-                                    {MOCK_USERS.filter(u => isSuperAdmin || u.deptId === currentUser.deptId).map(user => (
-                                        <tr key={user.id} className="bg-white hover:bg-slate-50/50 transition-colors">
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-center gap-3">
-                                                    <img src={user.avatar} className="w-8 h-8 rounded-full border border-slate-100" />
-                                                    <div>
-                                                        <p className="text-sm font-bold text-slate-700">{user.name}</p>
-                                                        <p className="text-[10px] text-slate-400">{user.email}</p>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${getRoleBadge(user.role).color}`}>
-                                                    {getRoleBadge(user.role).icon}
-                                                    {getRoleBadge(user.role).label}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <span className="text-xs font-medium text-slate-600">
-                                                    {user.role === 'super_admin' ? '全平台' : MOCK_REPOS.find(r => r.id === user.deptId)?.name}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 text-xs text-slate-400">{user.lastLogin}</td>
-                                            <td className="px-6 py-4 text-right">
-                                                {isSuperAdmin && user.role !== 'super_admin' && (
-                                                    <button className="p-2 text-slate-300 hover:text-slate-600 transition-colors"><Edit size={16}/></button>
-                                                )}
-                                                {isDeptAdmin && user.role === 'dept_collaborator' && (
-                                                    <button className="p-2 text-slate-300 hover:text-slate-600 transition-colors"><Edit size={16}/></button>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+             <div className="flex-1 flex overflow-hidden">
+                {/* Department Tree Sidebar */}
+                <aside className="w-64 border-r border-slate-50 bg-white flex flex-col shrink-0 px-4">
+                    <div className="py-2">
+                        <p className="text-[11px] font-black text-slate-300 uppercase tracking-widest px-2 mb-4">部门架构</p>
+                        <div className="space-y-1">
+                            <button 
+                                onClick={() => setActiveDeptFilterId('all')}
+                                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-bold transition-all ${activeDeptFilterId === 'all' ? 'bg-blue-50/50 text-[#007FFF]' : 'text-slate-500 hover:bg-slate-50'}`}
+                            >
+                                <LayoutGrid size={16} /> 全平台
+                            </button>
+                            {MOCK_REPOS.map(repo => (
+                                <button
+                                    key={repo.id}
+                                    onClick={() => setActiveDeptFilterId(repo.id)}
+                                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-bold transition-all ${activeDeptFilterId === repo.id ? 'bg-blue-50/50 text-[#007FFF]' : 'text-slate-500 hover:bg-slate-50'}`}
+                                >
+                                    <RepoIcon name={repo.icon} active={activeDeptFilterId === repo.id} />
+                                    {repo.name}
+                                </button>
+                            ))}
                         </div>
+                    </div>
+                </aside>
+
+                {/* Team Members List Area */}
+                <div className="flex-1 bg-white overflow-y-auto px-8 pb-8">
+                    <div className="border border-slate-50 rounded-2xl overflow-hidden shadow-sm">
+                        <table className="w-full text-left">
+                            <thead>
+                                <tr className="text-[11px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50">
+                                    <th className="px-8 py-4 font-bold">成员姓名</th>
+                                    <th className="px-6 py-4 font-bold">角色权限</th>
+                                    <th className="px-6 py-4 font-bold">对应部门/库</th>
+                                    <th className="px-6 py-4 font-bold">最后在线</th>
+                                    <th className="px-8 py-4 font-bold text-right">管理</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-50">
+                                {MOCK_USERS.filter(u => activeDeptFilterId === 'all' || u.deptId === activeDeptFilterId).map(user => (
+                                    <tr key={user.id} className="bg-white hover:bg-slate-50/20 transition-colors group">
+                                        <td className="px-8 py-4">
+                                            <div className="flex items-center gap-3">
+                                                <img src={user.avatar} className="w-8 h-8 rounded-full border border-slate-100" />
+                                                <div>
+                                                    <p className="text-sm font-bold text-slate-700 leading-tight">{user.name}</p>
+                                                    <p className="text-[10px] text-slate-300 font-medium">{user.email}</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest border ${getRoleBadge(user.role).color}`}>
+                                                {getRoleBadge(user.role).label}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className="text-xs font-bold text-slate-500">
+                                                {user.role === 'super_admin' ? '全平台' : MOCK_REPOS.find(r => r.id === user.deptId)?.name}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 text-xs text-slate-300 font-medium tracking-tight">{user.lastLogin}</td>
+                                        <td className="px-8 py-4 text-right">
+                                            <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                {/* Super Admin Actions */}
+                                                {isSuperAdmin && user.id !== currentUser.id && (
+                                                    <>
+                                                        <button className="p-2 text-slate-300 hover:text-[#007FFF] hover:bg-blue-50/50 rounded-lg transition-all" title="编辑权限">
+                                                            <Edit size={16}/>
+                                                        </button>
+                                                        <button className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all" title="移除成员">
+                                                            <UserMinus size={16}/>
+                                                        </button>
+                                                    </>
+                                                )}
+                                                {/* Department Admin Actions */}
+                                                {isDeptAdmin && user.id !== currentUser.id && user.deptId === currentUser.deptId && user.role !== 'dept_admin' && (
+                                                    <>
+                                                        <button className="p-2 text-slate-300 hover:text-[#007FFF] hover:bg-blue-50/50 rounded-lg transition-all" title="编辑权限">
+                                                            <Edit size={16}/>
+                                                        </button>
+                                                        <button className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all" title="移除成员">
+                                                            <UserMinus size={16}/>
+                                                        </button>
+                                                    </>
+                                                )}
+                                                {!((isSuperAdmin || isDeptAdmin) && user.id !== currentUser.id) && (
+                                                    <span className="text-xs text-slate-200 italic font-medium px-2">—</span>
+                                                )}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                                {MOCK_USERS.filter(u => activeDeptFilterId === 'all' || u.deptId === activeDeptFilterId).length === 0 && (
+                                    <tr>
+                                        <td colSpan={5} className="py-20 text-center text-slate-300 italic text-sm font-medium">
+                                            该部门暂无成员
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
              </div>
           </div>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center text-slate-400 space-y-6">
-            <div className="w-24 h-24 bg-slate-100 rounded-3xl flex items-center justify-center shadow-inner">
-              <Settings size={48} className="opacity-20" />
+          <div className="flex-1 flex flex-col items-center justify-center text-slate-300 space-y-6">
+            <div className="w-24 h-24 bg-slate-50 rounded-3xl flex items-center justify-center shadow-inner">
+              <Settings size={48} className="opacity-10" />
             </div>
             <div className="text-center">
-              <h2 className="text-xl font-bold text-slate-700">账户与偏好</h2>
-              <p className="text-sm mt-2 text-slate-400">正在优化设置面板</p>
+              <h2 className="text-xl font-bold text-slate-600 tracking-tight">配置加载中</h2>
+              <p className="text-sm mt-2 text-slate-300 font-medium">正在优化设置面板</p>
             </div>
           </div>
         )}
 
         {/* Modal Logic */}
         {modalMode && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-            <div className={`bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] transition-all ${['ingestion', 'preview', 'invite', 'details'].includes(modalMode) ? 'w-full max-w-4xl' : 'w-full max-w-xl'}`}>
-              <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between shrink-0">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm transition-all duration-300">
+            <div className={`bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] transition-all transform animate-in fade-in zoom-in duration-200 ${['ingestion', 'preview', 'invite', 'details'].includes(modalMode) ? 'w-full max-w-4xl' : 'w-full max-w-xl'}`}>
+              <div className="px-8 py-6 border-b border-slate-50 flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-3">
                     {modalMode === 'ingestion' && <Sparkles className="text-[#007FFF]" size={24} />}
                     {modalMode === 'details' && <Info className="text-[#007FFF]" size={24} />}
@@ -637,27 +692,26 @@ export default function App() {
                     '操作'}
                     </h3>
                 </div>
-                <button onClick={() => setModalMode(null)} className="p-2 hover:bg-slate-100 rounded-full text-slate-400"><X size={20} /></button>
+                <button onClick={() => setModalMode(null)} className="p-2 hover:bg-slate-50 rounded-full text-slate-300 transition-colors"><X size={20} /></button>
               </div>
 
               <div className="flex-1 overflow-y-auto p-8">
                   {modalMode === 'invite' && (
                       <div className="space-y-6">
-                          <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100 flex gap-4">
-                              <Key className="text-blue-500 shrink-0" size={24}/>
-                              <p className="text-sm text-slate-600 leading-relaxed">
-                                  您正在为 <span className="font-bold text-blue-600">{currentRepo?.name}</span> 邀请新成员。
-                                  邀请后，对方将默认获得该库的 <span className="font-bold">协作者</span> 权限。
+                          <div className="p-4 bg-blue-50/50 rounded-2xl border border-blue-100 flex gap-4">
+                              <Key className="text-[#007FFF] shrink-0" size={24}/>
+                              <p className="text-sm text-slate-600 leading-relaxed font-medium">
+                                  您正在为 <span className="font-bold text-[#007FFF]">{activeDeptFilterId !== 'all' ? MOCK_REPOS.find(r => r.id === activeDeptFilterId)?.name : currentRepo?.name}</span> 邀请新成员。
                               </p>
                           </div>
                           <div>
                               <label className="block text-sm font-bold text-slate-700 mb-2">邮箱地址 / 钉钉号</label>
-                              <input type="text" placeholder="输入邮箱或通过组织架构搜索..." className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all"/>
+                              <input type="text" placeholder="输入邮箱或通过组织架构搜索..." className="w-full px-4 py-3 rounded-xl border border-slate-100 outline-none focus:border-[#007FFF] focus:ring-4 focus:ring-blue-50/50 transition-all font-medium"/>
                           </div>
                           <div className="grid grid-cols-2 gap-4">
                               <div>
                                   <label className="block text-sm font-bold text-slate-700 mb-2">角色授权</label>
-                                  <select className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none bg-white">
+                                  <select className="w-full px-4 py-3 rounded-xl border border-slate-100 outline-none bg-white font-medium cursor-pointer">
                                       <option>部门协作者 (可读写)</option>
                                       <option>查看者 (只读)</option>
                                       {isSuperAdmin && <option>部门管理员</option>}
@@ -665,7 +719,7 @@ export default function App() {
                               </div>
                               <div>
                                   <label className="block text-sm font-bold text-slate-700 mb-2">有效期</label>
-                                  <select className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none bg-white">
+                                  <select className="w-full px-4 py-3 rounded-xl border border-slate-100 outline-none bg-white font-medium cursor-pointer">
                                       <option>永久有效</option>
                                       <option>30天 (项目期)</option>
                                       <option>7天 (临时查看)</option>
@@ -678,19 +732,19 @@ export default function App() {
                   {modalMode === 'newFolder' && (
                     <div className="space-y-4">
                         <label className="block text-sm font-bold text-slate-700">文件夹名称</label>
-                        <input value={newFolderName} onChange={e => setNewFolderName(e.target.value)} autoFocus placeholder="输入名称..." className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 outline-none"/>
+                        <input value={newFolderName} onChange={e => setNewFolderName(e.target.value)} autoFocus placeholder="输入名称..." className="w-full px-4 py-3 rounded-xl border border-slate-100 focus:border-[#007FFF] outline-none font-bold text-slate-700"/>
                     </div>
                   )}
 
                   {modalMode === 'preview' && previewFile && (
                     <div className="space-y-6">
-                        <div className="p-6 bg-slate-50 border border-slate-100 rounded-2xl">
-                            <h4 className="font-bold text-xl text-slate-800 mb-1">{previewFile.name}</h4>
-                            <p className="text-sm text-slate-500">{previewFile.summary}</p>
+                        <div className="p-6 bg-slate-50/50 border border-slate-100 rounded-2xl">
+                            <h4 className="font-bold text-xl text-slate-800 mb-1 leading-tight">{previewFile.name}</h4>
+                            <p className="text-sm text-slate-400 font-medium leading-relaxed">{previewFile.summary}</p>
                         </div>
-                        <div className="bg-white border border-slate-200 rounded-2xl p-10 min-h-[300px] flex flex-col items-center justify-center text-slate-300 italic">
-                            <FileSearch size={48} className="mb-4 opacity-10" />
-                            <p>内容预览受权限控制，当前仅供 {currentUser.role} 角色调阅</p>
+                        <div className="bg-white border border-slate-100 rounded-2xl p-10 min-h-[300px] flex flex-col items-center justify-center text-slate-300 italic">
+                            <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mb-4"><FileSearch size={32} className="opacity-20" /></div>
+                            <p className="font-medium">内容预览受权限控制，当前仅供 {currentUser.role} 角色调阅</p>
                         </div>
                     </div>
                   )}
@@ -698,41 +752,43 @@ export default function App() {
                   {modalMode === 'ingestion' && (
                     <div className="space-y-8">
                         <div className="flex gap-2 p-1 bg-slate-100 rounded-xl w-fit">
-                            <button onClick={() => setIngestionTab('smart')} className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${ingestionTab === 'smart' ? 'bg-white text-[#007FFF] shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>智能识别模式</button>
-                            <button onClick={() => setIngestionTab('manual')} className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${ingestionTab === 'manual' ? 'bg-white text-[#007FFF] shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>手动整理模式</button>
+                            <button onClick={() => setIngestionTab('smart')} className={`px-4 py-1.5 text-xs font-black rounded-lg transition-all tracking-widest uppercase ${ingestionTab === 'smart' ? 'bg-white text-[#007FFF] shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>智能识别模式</button>
+                            <button onClick={() => setIngestionTab('manual')} className={`px-4 py-1.5 text-xs font-black rounded-lg transition-all tracking-widest uppercase ${ingestionTab === 'manual' ? 'bg-white text-[#007FFF] shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>手动整理模式</button>
                         </div>
 
                         {ingestionTab === 'smart' ? (
                             <div className="space-y-6">
-                                <div className="p-6 bg-blue-50 rounded-2xl border border-dashed border-blue-200 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-blue-100/50 transition-all group">
-                                    <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-sm mb-4 group-hover:scale-110 transition-transform"><UploadCloud className="text-[#007FFF]" size={32} /></div>
-                                    <h4 className="font-bold text-slate-800">拖拽文件或点击上传</h4>
-                                    <p className="text-xs text-slate-400 mt-2">支持 PDF, Word, Excel, JPG, PNG (最大 50MB)</p>
-                                    <p className="text-[10px] text-blue-500 font-bold mt-4 px-3 py-1 bg-white rounded-full border border-blue-100">AI 将自动为您提取摘要与标签</p>
+                                <div className="p-10 bg-blue-50/30 rounded-3xl border-2 border-dashed border-blue-100 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-blue-50/50 transition-all group">
+                                    <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-50/50 mb-6 group-hover:scale-110 transition-transform"><UploadCloud className="text-[#007FFF]" size={32} /></div>
+                                    <h4 className="font-bold text-slate-800 text-lg">拖拽文件或点击上传</h4>
+                                    <p className="text-xs text-slate-400 mt-2 font-medium">支持 PDF, Word, Excel, JPG, PNG (最大 50MB)</p>
+                                    <div className="mt-6 flex items-center gap-2 px-4 py-1.5 bg-[#007FFF] text-white rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-100">
+                                        <Sparkles size={12} /> AI 自动提取
+                                    </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">首选 AI 模板</p>
-                                        <select className="w-full bg-white border border-slate-200 rounded-lg p-2 text-sm outline-none">
+                                    <div className="p-4 bg-slate-50/50 rounded-2xl border border-slate-50">
+                                        <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-3">首选 AI 模板</p>
+                                        <select className="w-full bg-white border border-slate-100 rounded-xl p-3 text-sm font-bold text-slate-600 outline-none cursor-pointer">
                                             <option>自动检测最佳模板</option>
                                             {MOCK_TEMPLATES.filter(t => t.repoId === activeRepoId).map(t => <option key={t.id}>{t.name}</option>)}
                                         </select>
                                     </div>
-                                    <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">目标文件夹</p>
-                                        <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg p-2 text-sm text-slate-500">
-                                            <FolderIcon size={14} /> 根目录
+                                    <div className="p-4 bg-slate-50/50 rounded-2xl border border-slate-50">
+                                        <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-3">目标文件夹</p>
+                                        <div className="flex items-center gap-2 bg-white border border-slate-100 rounded-xl p-3 text-sm font-bold text-slate-400">
+                                            <FolderIcon size={14} className="text-slate-300" /> 根目录
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         ) : (
                             <div className="space-y-4">
-                                <div className="flex items-center gap-4 p-4 bg-amber-50 rounded-2xl border border-amber-100 text-amber-700">
+                                <div className="flex items-center gap-4 p-4 bg-amber-50/50 rounded-2xl border border-amber-100 text-amber-700">
                                     <FileWarning size={20} className="shrink-0" />
-                                    <p className="text-xs leading-relaxed">手动整理模式下，AI 不会介入元数据提取。这可能导致知识库搜索效率降低。</p>
+                                    <p className="text-xs leading-relaxed font-medium">手动整理模式下，AI 不会介入元数据提取。这可能导致知识库搜索效率降低。</p>
                                 </div>
-                                <div className="h-48 border-2 border-dashed border-slate-200 rounded-2xl flex items-center justify-center text-slate-400 text-sm italic">
+                                <div className="h-48 border-2 border-dashed border-slate-100 rounded-3xl flex items-center justify-center text-slate-300 text-sm italic font-medium">
                                     点击上传文件并手动输入摘要信息
                                 </div>
                             </div>
@@ -742,32 +798,32 @@ export default function App() {
 
                   {(modalMode === 'create' || modalMode === 'edit') && (
                       <div className="space-y-6">
-                          <div className="grid grid-cols-2 gap-6">
-                              <div className="space-y-4">
+                          <div className="grid grid-cols-2 gap-8">
+                              <div className="space-y-6">
                                   <div>
                                       <label className="block text-sm font-bold text-slate-700 mb-2">模板名称</label>
-                                      <input type="text" defaultValue={selectedTemplate?.name} placeholder="如：销售合同、研发周报" className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-blue-500 transition-all"/>
+                                      <input type="text" defaultValue={selectedTemplate?.name} placeholder="如：销售合同、研发周报" className="w-full px-4 py-3 rounded-xl border border-slate-100 outline-none focus:border-[#007FFF] transition-all font-bold text-slate-700"/>
                                   </div>
                                   <div>
                                       <label className="block text-sm font-bold text-slate-700 mb-2">模板描述</label>
-                                      <textarea rows={3} defaultValue={selectedTemplate?.description} placeholder="说明此模板适用于哪些类型的文档..." className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-blue-500 transition-all resize-none"></textarea>
+                                      <textarea rows={4} defaultValue={selectedTemplate?.description} placeholder="说明此模板适用于哪些类型的文档..." className="w-full px-4 py-3 rounded-xl border border-slate-100 outline-none focus:border-[#007FFF] transition-all resize-none font-medium text-slate-500 leading-relaxed"></textarea>
                                   </div>
                               </div>
-                              <div className="space-y-4">
+                              <div className="space-y-6">
                                   <div>
                                       <label className="block text-sm font-bold text-slate-700 mb-2">默认标签</label>
-                                      <div className="flex flex-wrap gap-2 p-3 bg-slate-50 border border-slate-200 rounded-xl min-h-[50px]">
+                                      <div className="flex flex-wrap gap-2 p-4 bg-slate-50/50 border border-slate-50 rounded-2xl min-h-[60px]">
                                           {selectedTemplate?.defaultTags.map(tag => (
-                                              <span key={tag} className="px-2 py-1 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-600 flex items-center gap-1">
-                                                  {tag} <X size={12} className="text-slate-300 hover:text-slate-600 cursor-pointer" />
+                                              <span key={tag} className="px-2 py-1 bg-white border border-slate-100 rounded-lg text-xs font-bold text-slate-600 flex items-center gap-1.5 shadow-sm">
+                                                  {tag} <X size={12} className="text-slate-300 hover:text-rose-500 cursor-pointer transition-colors" />
                                               </span>
                                           ))}
-                                          <button className="text-[10px] font-bold text-[#007FFF] flex items-center gap-1">+ 添加</button>
+                                          <button className="text-[10px] font-black text-[#007FFF] flex items-center gap-1 uppercase tracking-widest px-2 py-1 bg-white rounded-lg border border-[#007FFF]/20">+ 添加</button>
                                       </div>
                                   </div>
                                   <div>
                                       <label className="block text-sm font-bold text-slate-700 mb-2">有效期提取逻辑</label>
-                                      <select className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none bg-white">
+                                      <select className="w-full px-4 py-3 rounded-xl border border-slate-100 outline-none bg-white font-bold text-slate-600 cursor-pointer">
                                           <option>根据文件内容自动识别</option>
                                           <option>固定 30 天</option>
                                           <option>固定 1 年</option>
@@ -780,42 +836,45 @@ export default function App() {
                   )}
 
                   {modalMode === 'details' && selectedTemplate && (
-                      <div className="space-y-8">
+                      <div className="space-y-10">
                           <div className="flex gap-8 items-start">
-                              <div className="w-20 h-20 bg-blue-50 text-[#007FFF] rounded-3xl flex items-center justify-center shrink-0"><Zap size={40} /></div>
+                              <div className="w-20 h-20 bg-blue-50/50 text-[#007FFF] rounded-3xl flex items-center justify-center shrink-0 shadow-lg shadow-blue-50/50"><Zap size={40} /></div>
                               <div className="flex-1">
-                                  <h4 className="text-2xl font-bold text-slate-800 mb-2">{selectedTemplate.name}</h4>
-                                  <p className="text-slate-500 leading-relaxed mb-4">{selectedTemplate.description}</p>
+                                  <h4 className="text-3xl font-black text-slate-800 mb-2 tracking-tight">{selectedTemplate.name}</h4>
+                                  <p className="text-slate-400 font-medium leading-relaxed mb-6 text-lg">{selectedTemplate.description}</p>
                                   <div className="flex gap-4">
-                                      <div className="px-4 py-2 bg-slate-100 rounded-xl">
-                                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">使用频率</p>
-                                          <p className="text-lg font-bold text-slate-700">{selectedTemplate.usageCount} 次</p>
+                                      <div className="px-6 py-3 bg-slate-50 border border-slate-50 rounded-2xl shadow-sm">
+                                          <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-1">使用频率</p>
+                                          <p className="text-xl font-bold text-slate-700">{selectedTemplate.usageCount} <span className="text-xs font-medium text-slate-400 ml-1">次</span></p>
                                       </div>
-                                      <div className="px-4 py-2 bg-slate-100 rounded-xl">
-                                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">默认标签</p>
-                                          <div className="flex gap-1 mt-1">
-                                              {selectedTemplate.defaultTags.map(t => <span key={t} className="text-xs font-bold text-[#007FFF]">{t}</span>)}
+                                      <div className="px-6 py-3 bg-slate-50 border border-slate-50 rounded-2xl shadow-sm">
+                                          <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-1">默认标签</p>
+                                          <div className="flex gap-2 mt-1">
+                                              {selectedTemplate.defaultTags.map(t => <span key={t} className="text-xs font-black text-[#007FFF] tracking-wider">{t}</span>)}
                                           </div>
                                       </div>
                                   </div>
                               </div>
                           </div>
 
-                          <div className="space-y-4">
-                              <h5 className="font-bold text-slate-800 flex items-center gap-2">样例文件库 <FileCheck size={18} className="text-emerald-500" /></h5>
+                          <div className="space-y-6">
+                              <h5 className="font-bold text-slate-800 flex items-center gap-2 text-lg">样例文件库 <FileCheck size={20} className="text-emerald-500" /></h5>
                               <div className="grid grid-cols-2 gap-4">
                                   {selectedTemplate.sampleFiles?.map(sample => (
-                                      <div key={sample} className="p-4 border border-slate-200 rounded-2xl flex items-center justify-between group hover:bg-slate-50 transition-colors">
-                                          <div className="flex items-center gap-3">
-                                              <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400"><FileText size={20} /></div>
-                                              <p className="text-sm font-bold text-slate-700">{sample}</p>
+                                      <div key={sample} className="p-4 border border-slate-100 rounded-2xl flex items-center justify-between group hover:bg-slate-50/50 transition-all cursor-pointer shadow-sm">
+                                          <div className="flex items-center gap-4">
+                                              <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-slate-300 border border-slate-50"><FileText size={24} /></div>
+                                              <div>
+                                                <p className="text-sm font-bold text-slate-700 leading-tight">{sample}</p>
+                                                <p className="text-[10px] text-slate-400 mt-1 font-medium">1.2 MB · PDF</p>
+                                              </div>
                                           </div>
-                                          <button className="p-2 text-slate-300 hover:text-[#007FFF] opacity-0 group-hover:opacity-100 transition-opacity"><Download size={18} /></button>
+                                          <button className="p-2.5 text-slate-200 hover:text-[#007FFF] hover:bg-white rounded-xl transition-all shadow-sm"><Download size={20} /></button>
                                       </div>
                                   ))}
-                                  <button className="border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center p-4 text-slate-400 hover:border-[#007FFF] hover:text-[#007FFF] transition-all">
-                                      <Plus size={20} />
-                                      <span className="text-[10px] font-bold uppercase mt-1">添加样例以训练 AI</span>
+                                  <button className="border-2 border-dashed border-slate-100 rounded-3xl flex flex-col items-center justify-center p-6 text-slate-300 hover:border-[#007FFF]/30 hover:text-[#007FFF] hover:bg-blue-50/10 transition-all duration-300 group">
+                                      <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center mb-2 group-hover:bg-[#007FFF]/10 transition-colors"><Plus size={20} /></div>
+                                      <span className="text-[10px] font-black uppercase tracking-widest">上传样例训练 AI</span>
                                   </button>
                               </div>
                           </div>
@@ -823,12 +882,12 @@ export default function App() {
                   )}
               </div>
 
-              <div className="px-8 py-6 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
-                <button onClick={() => setModalMode(null)} className="px-6 py-2.5 font-bold text-slate-500 hover:bg-slate-100 rounded-xl">取消</button>
+              <div className="px-8 py-6 bg-slate-50/50 border-t border-slate-50 flex justify-end gap-3 shrink-0">
+                <button onClick={() => setModalMode(null)} className="px-6 py-2.5 font-bold text-slate-400 hover:text-slate-600 hover:bg-white rounded-xl transition-all">取消</button>
                 <button 
                   onClick={modalMode === 'newFolder' ? createFolder : modalMode === 'ingestion' ? handleUploadComplete : () => setModalMode(null)}
                   disabled={isProcessing}
-                  className="px-8 py-2.5 bg-[#007FFF] text-white font-bold rounded-xl shadow-lg shadow-blue-200 hover:bg-blue-600 flex items-center gap-2 min-w-[120px] justify-center"
+                  className="px-8 py-2.5 bg-[#007FFF] text-white font-black rounded-xl shadow-lg shadow-blue-100 hover:bg-blue-600 flex items-center gap-2 min-w-[140px] justify-center transition-all active:scale-95"
                 >
                   {isProcessing ? (
                       <>
@@ -838,8 +897,8 @@ export default function App() {
                   ) : (
                       modalMode === 'invite' ? '发送邀请' : 
                       modalMode === 'ingestion' ? '开始入库' :
-                      modalMode === 'details' ? '应用此模板' :
-                      '确认保存'
+                      modalMode === 'details' ? '应用模板' :
+                      '确认并保存'
                   )}
                 </button>
               </div>
@@ -856,13 +915,13 @@ function NavItem({ icon, label, active, onClick }: { icon: React.ReactNode, labe
   return (
     <button 
       onClick={onClick}
-      className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 ${
+      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all shrink-0 ${
         active 
-          ? 'bg-blue-50 text-[#007FFF] shadow-[0_2px_10px_rgba(0,127,255,0.08)]' 
-          : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
+          ? 'bg-blue-50/80 text-[#007FFF] shadow-sm' 
+          : 'text-slate-400 hover:bg-slate-50 hover:text-slate-600'
       }`}
     >
-      <span className={active ? 'text-[#007FFF]' : 'text-slate-400 group-hover:text-slate-600'}>{icon}</span>
+      <span className={active ? 'text-[#007FFF]' : 'text-slate-300 group-hover:text-slate-400'}>{icon}</span>
       {label}
     </button>
   );
