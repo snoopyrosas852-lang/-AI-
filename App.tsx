@@ -49,7 +49,9 @@ import {
   UserPlus,
   Shield,
   UserCheck,
-  Key
+  Key,
+  Info,
+  FileWarning
 } from 'lucide-react';
 import { ViewState, FileItem, Folder, Repository, ValidityStatus, AITemplate, UserRole, User } from './types';
 
@@ -400,7 +402,7 @@ export default function App() {
 
                   {currentView === 'templates' && canManageTemplates && (
                     <button 
-                        onClick={() => setModalMode('create')}
+                        onClick={() => { setSelectedTemplate(null); setModalMode('create'); }}
                         className="flex items-center gap-2 px-4 py-2 bg-[#007FFF] text-white rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors shadow-sm"
                     >
                         <Plus size={18} /> 新建模板
@@ -618,11 +620,23 @@ export default function App() {
         {/* Modal Logic */}
         {modalMode && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-            <div className={`bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] ${['ingestion', 'preview', 'invite'].includes(modalMode) ? 'w-full max-w-4xl' : 'w-full max-w-xl'}`}>
+            <div className={`bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] transition-all ${['ingestion', 'preview', 'invite', 'details'].includes(modalMode) ? 'w-full max-w-4xl' : 'w-full max-w-xl'}`}>
               <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between shrink-0">
-                <h3 className="text-xl font-bold text-slate-800">
-                  {modalMode === 'invite' ? '邀请协作者' : modalMode === 'newFolder' ? '新建文件夹' : modalMode === 'preview' ? '文件预览' : '操作'}
-                </h3>
+                <div className="flex items-center gap-3">
+                    {modalMode === 'ingestion' && <Sparkles className="text-[#007FFF]" size={24} />}
+                    {modalMode === 'details' && <Info className="text-[#007FFF]" size={24} />}
+                    {(modalMode === 'create' || modalMode === 'edit') && <Zap className="text-[#007FFF]" size={24} />}
+                    <h3 className="text-xl font-bold text-slate-800">
+                    {modalMode === 'invite' ? '邀请协作者' : 
+                    modalMode === 'newFolder' ? '新建文件夹' : 
+                    modalMode === 'preview' ? '文件预览' : 
+                    modalMode === 'ingestion' ? '智能文档入库' :
+                    modalMode === 'details' ? '模板详情' :
+                    modalMode === 'create' ? '新建 AI 模板' :
+                    modalMode === 'edit' ? '编辑 AI 模板' :
+                    '操作'}
+                    </h3>
+                </div>
                 <button onClick={() => setModalMode(null)} className="p-2 hover:bg-slate-100 rounded-full text-slate-400"><X size={20} /></button>
               </div>
 
@@ -680,15 +694,153 @@ export default function App() {
                         </div>
                     </div>
                   )}
+
+                  {modalMode === 'ingestion' && (
+                    <div className="space-y-8">
+                        <div className="flex gap-2 p-1 bg-slate-100 rounded-xl w-fit">
+                            <button onClick={() => setIngestionTab('smart')} className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${ingestionTab === 'smart' ? 'bg-white text-[#007FFF] shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>智能识别模式</button>
+                            <button onClick={() => setIngestionTab('manual')} className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${ingestionTab === 'manual' ? 'bg-white text-[#007FFF] shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>手动整理模式</button>
+                        </div>
+
+                        {ingestionTab === 'smart' ? (
+                            <div className="space-y-6">
+                                <div className="p-6 bg-blue-50 rounded-2xl border border-dashed border-blue-200 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-blue-100/50 transition-all group">
+                                    <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-sm mb-4 group-hover:scale-110 transition-transform"><UploadCloud className="text-[#007FFF]" size={32} /></div>
+                                    <h4 className="font-bold text-slate-800">拖拽文件或点击上传</h4>
+                                    <p className="text-xs text-slate-400 mt-2">支持 PDF, Word, Excel, JPG, PNG (最大 50MB)</p>
+                                    <p className="text-[10px] text-blue-500 font-bold mt-4 px-3 py-1 bg-white rounded-full border border-blue-100">AI 将自动为您提取摘要与标签</p>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">首选 AI 模板</p>
+                                        <select className="w-full bg-white border border-slate-200 rounded-lg p-2 text-sm outline-none">
+                                            <option>自动检测最佳模板</option>
+                                            {MOCK_TEMPLATES.filter(t => t.repoId === activeRepoId).map(t => <option key={t.id}>{t.name}</option>)}
+                                        </select>
+                                    </div>
+                                    <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">目标文件夹</p>
+                                        <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg p-2 text-sm text-slate-500">
+                                            <FolderIcon size={14} /> 根目录
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-4 p-4 bg-amber-50 rounded-2xl border border-amber-100 text-amber-700">
+                                    <FileWarning size={20} className="shrink-0" />
+                                    <p className="text-xs leading-relaxed">手动整理模式下，AI 不会介入元数据提取。这可能导致知识库搜索效率降低。</p>
+                                </div>
+                                <div className="h-48 border-2 border-dashed border-slate-200 rounded-2xl flex items-center justify-center text-slate-400 text-sm italic">
+                                    点击上传文件并手动输入摘要信息
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                  )}
+
+                  {(modalMode === 'create' || modalMode === 'edit') && (
+                      <div className="space-y-6">
+                          <div className="grid grid-cols-2 gap-6">
+                              <div className="space-y-4">
+                                  <div>
+                                      <label className="block text-sm font-bold text-slate-700 mb-2">模板名称</label>
+                                      <input type="text" defaultValue={selectedTemplate?.name} placeholder="如：销售合同、研发周报" className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-blue-500 transition-all"/>
+                                  </div>
+                                  <div>
+                                      <label className="block text-sm font-bold text-slate-700 mb-2">模板描述</label>
+                                      <textarea rows={3} defaultValue={selectedTemplate?.description} placeholder="说明此模板适用于哪些类型的文档..." className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-blue-500 transition-all resize-none"></textarea>
+                                  </div>
+                              </div>
+                              <div className="space-y-4">
+                                  <div>
+                                      <label className="block text-sm font-bold text-slate-700 mb-2">默认标签</label>
+                                      <div className="flex flex-wrap gap-2 p-3 bg-slate-50 border border-slate-200 rounded-xl min-h-[50px]">
+                                          {selectedTemplate?.defaultTags.map(tag => (
+                                              <span key={tag} className="px-2 py-1 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-600 flex items-center gap-1">
+                                                  {tag} <X size={12} className="text-slate-300 hover:text-slate-600 cursor-pointer" />
+                                              </span>
+                                          ))}
+                                          <button className="text-[10px] font-bold text-[#007FFF] flex items-center gap-1">+ 添加</button>
+                                      </div>
+                                  </div>
+                                  <div>
+                                      <label className="block text-sm font-bold text-slate-700 mb-2">有效期提取逻辑</label>
+                                      <select className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none bg-white">
+                                          <option>根据文件内容自动识别</option>
+                                          <option>固定 30 天</option>
+                                          <option>固定 1 年</option>
+                                          <option>永久有效</option>
+                                      </select>
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+                  )}
+
+                  {modalMode === 'details' && selectedTemplate && (
+                      <div className="space-y-8">
+                          <div className="flex gap-8 items-start">
+                              <div className="w-20 h-20 bg-blue-50 text-[#007FFF] rounded-3xl flex items-center justify-center shrink-0"><Zap size={40} /></div>
+                              <div className="flex-1">
+                                  <h4 className="text-2xl font-bold text-slate-800 mb-2">{selectedTemplate.name}</h4>
+                                  <p className="text-slate-500 leading-relaxed mb-4">{selectedTemplate.description}</p>
+                                  <div className="flex gap-4">
+                                      <div className="px-4 py-2 bg-slate-100 rounded-xl">
+                                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">使用频率</p>
+                                          <p className="text-lg font-bold text-slate-700">{selectedTemplate.usageCount} 次</p>
+                                      </div>
+                                      <div className="px-4 py-2 bg-slate-100 rounded-xl">
+                                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">默认标签</p>
+                                          <div className="flex gap-1 mt-1">
+                                              {selectedTemplate.defaultTags.map(t => <span key={t} className="text-xs font-bold text-[#007FFF]">{t}</span>)}
+                                          </div>
+                                      </div>
+                                  </div>
+                              </div>
+                          </div>
+
+                          <div className="space-y-4">
+                              <h5 className="font-bold text-slate-800 flex items-center gap-2">样例文件库 <FileCheck size={18} className="text-emerald-500" /></h5>
+                              <div className="grid grid-cols-2 gap-4">
+                                  {selectedTemplate.sampleFiles?.map(sample => (
+                                      <div key={sample} className="p-4 border border-slate-200 rounded-2xl flex items-center justify-between group hover:bg-slate-50 transition-colors">
+                                          <div className="flex items-center gap-3">
+                                              <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400"><FileText size={20} /></div>
+                                              <p className="text-sm font-bold text-slate-700">{sample}</p>
+                                          </div>
+                                          <button className="p-2 text-slate-300 hover:text-[#007FFF] opacity-0 group-hover:opacity-100 transition-opacity"><Download size={18} /></button>
+                                      </div>
+                                  ))}
+                                  <button className="border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center p-4 text-slate-400 hover:border-[#007FFF] hover:text-[#007FFF] transition-all">
+                                      <Plus size={20} />
+                                      <span className="text-[10px] font-bold uppercase mt-1">添加样例以训练 AI</span>
+                                  </button>
+                              </div>
+                          </div>
+                      </div>
+                  )}
               </div>
 
               <div className="px-8 py-6 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
                 <button onClick={() => setModalMode(null)} className="px-6 py-2.5 font-bold text-slate-500 hover:bg-slate-100 rounded-xl">取消</button>
                 <button 
-                  onClick={modalMode === 'newFolder' ? createFolder : () => setModalMode(null)}
-                  className="px-8 py-2.5 bg-[#007FFF] text-white font-bold rounded-xl shadow-lg shadow-blue-200 hover:bg-blue-600"
+                  onClick={modalMode === 'newFolder' ? createFolder : modalMode === 'ingestion' ? handleUploadComplete : () => setModalMode(null)}
+                  disabled={isProcessing}
+                  className="px-8 py-2.5 bg-[#007FFF] text-white font-bold rounded-xl shadow-lg shadow-blue-200 hover:bg-blue-600 flex items-center gap-2 min-w-[120px] justify-center"
                 >
-                  {modalMode === 'invite' ? '发送邀请' : '确认'}
+                  {isProcessing ? (
+                      <>
+                        <RefreshCcw className="animate-spin" size={18} />
+                        处理中...
+                      </>
+                  ) : (
+                      modalMode === 'invite' ? '发送邀请' : 
+                      modalMode === 'ingestion' ? '开始入库' :
+                      modalMode === 'details' ? '应用此模板' :
+                      '确认保存'
+                  )}
                 </button>
               </div>
             </div>
